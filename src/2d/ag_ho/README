@@ -1,0 +1,5 @@
+reorganized so that the application has the Makefile (not fully propagated to subdirectories more
+than one level down).  
+
+added a variable nvar to incart (to handle linear advection test instead of Euler)
+

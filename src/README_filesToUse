@@ -1,0 +1,10 @@
+the files to use in amrclaw-amrcart/src/2d:
+
+
+for linear or ptwise quadratic reconstruction, use 
+lp_qslopesPtQuad2.f
+SRD_normal2.f
+
+for cell-average reconstruction use
+qslopesWithGhostAvgWuadratic.f
+SRD_quadratic

@@ -1,0 +1,25 @@
+*.pyc
+*.o
+*.mod
+.output
+.data
+.plots
+xclaw
+xamr
+xgeoclaw
+*.html
+_output/
+_plots/
+*~
+fort.*
+*.dat
+timing.*
+
+# log files
+*.log
+
+# py3k cache directories
+__pycache__
+
+# ipython
+.ipynb_checkpoints

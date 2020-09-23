@@ -1,0 +1,56 @@
+ 90        ! interval for output
+ 50        ! number of coarse steps to take
+ 1         ! max level refinement
+ 2         ! order of accuracy for method (used in error est)
+ 1         ! ismp: 1=SRD, 2=DRD, 0 = nothing
+ 5000      ! user output interval
+ 4         ! number of independent variables 
+ 300000    ! kcheck interval between error estimates (set to infinite if no refinement)
+ 2         ! buffer size in x 
+ 2         ! buffer size in y   
+ 1.d0      !  slope switch:  0 for first order, 1 for second order
+ F         !  quadratic reconstruction
+ T         !  T = nolimiter  F = use limiter
+   2   2    2    2   2    2   2  2  2  2  2 2   ! refinement factors between levels
+.001            ! error tolerance for refinement
+.70             ! efficiency tolerance for clusters
+.04545454545    ! dx on coarse level
+.04545454545    ! dy on coarse level
+.003        ! dt on coarse level
+.85         ! cfl
+T       ! variable time stepping?
+T       ! graf output?  (if false, voluminous print output)
+F       ! restart?  if yes, link output file to restart.data
+F       ! marching to steady state
+1.0     ! domain extent in x  (starts at 0.d0)
+1.0     ! domain extent in y  (starts at 0.d0)
+16      ! problem number, for geometry and init cond. 16 = rotated channel
+2       ! number of closed loops
+0.  .11   ! a starting point (x,y) on first loop
+.999999     .91  ! (x,y) point on second loop
+
+
+.001  .70    1.5    .04545454545 .04545454545 .004 .4
+.001  .70    1.5    .04545454545 .04166666666 .004 .45
+.001  .70    1.5    .022727272727 .022727272727.002 .4
+
+
+format for these 5 input lines:
+ iout,nstopc,mxnest,iorder,iousr, nvar                       (integer)
+ kcheck,ibuffx,ibuffy,ismp (3=h-boxes,4=cell,5-quad),        (integers)
+ SSW,QUAD,NOLIMITER (T for quad.fit at cuts,else linear)     (real,logical,logical)
+ intrat(i),i=1,mxnest                                        (integers)
+ tol,cut,cdist,hxposs(1),hyposs(1),possk(1),cfl               (real)
+ vtime,graf,restart,steady       ** 4L1 format  **            (logical)
+ 
+the problem parameters:
+  gamma, xprob, yprob, iprob,alpha     (3*real, integer,real)
+  nloops, (xloops(i),yloops(i),i=1,nloops)
+    !!!!  (must be 1st pt on boundary segment if not closed loop)
+	  (1st pt is going clockwise around boundary from inside solid object)
+
+
+1.4    1.0   1.0        16         (rotated channel)
+2      0.  .11    .999999     .91
+1.4    1.0   1.0        16         (rotated channel)
+2      .19999  0.     .800001 1.00

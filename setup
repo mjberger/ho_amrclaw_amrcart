@@ -1,0 +1,2 @@
+setenv CLAW /Users/berger/claw54_frozen
+setenv PYTHONPATH $CLAW

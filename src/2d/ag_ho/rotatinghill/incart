@@ -1,0 +1,39 @@
+ 100      ! interval for output
+ 1      ! number of coarse steps to take
+ 1         ! max level refinement
+ 2         ! order of accuracy for method (used in error est)
+ 1      ! ismp: 1=SRD, 0 = nothing
+ 5000      ! user output interval
+ 4         ! number of independent variables 
+ 300000    ! kcheck interval between error estimates (set to infinite if no refinement)
+ 2         ! buffer size in x 
+ 2         ! buffer size in y   
+ 2     !  slope switch:  0 for first order, 1 for second order, 2 for third order, 3 for fourth order
+ F         !  reconstruction in primitive variables 
+ T         !  T = nolimiter  F = use limiter
+   2   2    2    2   2    2   2  2  2  2  2 2   ! refinement factors between levels
+.001            ! error tolerance for refinement
+.70             ! efficiency tolerance for clusters
+800 !        !dx=.04545454545  on coarse level
+800 !        !dy=.04545454545  on coarse level
+.0005       ! dt on coarse level
+1.0        ! cfl
+T       ! variable time stepping?
+T       ! graf output?  (if false, voluminous print output)
+F       ! restart?  if yes, link output file to restart.data
+F       ! marching to steady state
+3.d0     ! domain extent in x  (starts at 0.d0)
+3.d0     ! domain extent in y  (starts at 0.d0)
+27      ! problem number, for geometry and init cond. 16 = rotated channel
+2       ! number of closed loops
+0.749d0  1.5d0   ! a starting point (x,y) on first loop
+0.249d0  1.5d0   ! a starting point (x,y) on second loop
+0.5d0  ! out interval
+1.0d0   ! final time
+1 ! equations
+0 ! lts
+0 ! high order boundary
+0 ! exact inflow/outflow BC
+1.5 ! sx
+1.5 ! sy
+0   ! imodal
