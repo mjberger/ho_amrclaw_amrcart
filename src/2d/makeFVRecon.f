@@ -78,7 +78,7 @@ c
 30          continue
 31          continue
 
-           if (kirr .eq. lstgrd) then  ! use adjacent full cell tolerance
+           if (koff .eq. lstgrd) then  ! use adjacent full cell tolerance
               if(diffx < reconTOLx_nb) then
                  iir(i,j) = iir(i,j) + 1
                  icont = 1
