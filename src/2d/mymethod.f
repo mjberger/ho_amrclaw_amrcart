@@ -247,8 +247,8 @@ c      # finite volume update
 c
          c      = coeff(istage)
          ar(-1) = 1.d0   ! prevent zero divides for solid cells
-         do 918 j = iy1, iyn
-         do 917 i = ix1, ixn
+         do 918 j = lwidth+1, mjtot-lwidth
+         do 917 i = lwidth+1, mitot-lwidth
 
          k = irr(i,j)
            do m = 1, nvar
