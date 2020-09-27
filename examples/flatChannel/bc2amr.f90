@@ -130,7 +130,7 @@ subroutine bc2amr(val,aux,nrow,ncol,meqn,naux, hx, hy, level, time,   &
            do i=1, nxl
               kuse = irr(i,j)
               call getCellAvgState(meqn,xlo_patch,ylo_patch,hx,hy,   &
-                                   state,lstgrd,kuse,i,j)
+                                   state,lstgrd,kuse,i,j,time)
               !if (kuse .ne. -1 .and. kuse .ne. lstgrd) then
               !   xcen = xcirr(kuse)
               !   ycen = ycirr(kuse)
@@ -194,7 +194,7 @@ subroutine bc2amr(val,aux,nrow,ncol,meqn,naux, hx, hy, level, time,   &
            do i=ibeg, nrow
               kuse = irr(i,j)
               call getCellAvgState(meqn,xlo_patch,ylo_patch,hx,hy,   &
-                                   state,lstgrd,kuse,i,j)
+                                   state,lstgrd,kuse,i,j,time)
 
               !if (kuse .ne. -1 .and. kuse .ne. lstgrd) then
               !   xcen = xcirr(kuse)

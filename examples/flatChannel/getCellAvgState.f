@@ -2,7 +2,7 @@ c
 c
 c     =====================================================
        subroutine getCellAvgState(meqn,xlow,ylow,
-     &                   dx,dy,qij,lstgrd,kirr,i,j)
+     &                   dx,dy,qij,lstgrd,kirr,i,j,time)
 c     =====================================================
 c
 c     # Set initial conditions for q.
@@ -41,7 +41,7 @@ c
      &           +  x3 * (1.d0-rtri(itq)-stri(itq))
             yval = y1 * rtri(itq) + y2 * stri(itq)
      &           +  y3 * (1.d0-rtri(itq)-stri(itq))
-            call channelInit(xval,yval,state)
+            call channelInit(xval,yval,state,time)
             qij(:) = qij(:) + (artri/arr)*wtri(itq) * state(:)
          end do
          ivert = ivert + 1  ! next tri is verts 1 3 4
