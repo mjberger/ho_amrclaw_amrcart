@@ -129,8 +129,8 @@ c
 c
          do 512  nn = 1, nlinequad
             do ii = 1, msize
-              ur(:,ii) = fakeStatePrim(:) !initialize so ghost and missing vals still ok
-              ul(:,ii) = fakeStatePrim(:) 
+              ur(:,ii) = fakeStateCons(:) !initialize so ghost and missing vals still ok
+              ul(:,ii) = fakeStateCons(:) 
             end do
             do 511 i = 2, mitot-2
                call getYface_gauss(i,jcol,xface,yface,irr,mitot,mjtot,
@@ -181,8 +181,8 @@ c
             call getXface_gauss(irow,j,xface,yface,irr,mitot,mjtot,
      .               xlow,ylow,dx,dy,lstgrd,nn,missing)
             if (missing) then
-               ur(:,j) = fakeStatePrim
-               ul(:,j) = fakeStatePrim
+               ur(:,j) = fakeStateCons
+               ul(:,j) = fakeStateCons
                cycle
             endif
 

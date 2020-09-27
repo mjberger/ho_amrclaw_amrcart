@@ -1,6 +1,7 @@
 #get the directory of this makefile
 #AMRLIB:=$(CLAW)/amrclaw/src/2d
-AMRLIB:=$(HOME)/ho_amrclaw-amrcart/src/2d
+#AMRLIB:=$(HOME)/ho_amrclaw-amrcart/src/2d
+AMRLIB:=/Users/berger/ho_amrclaw_amrcart/src/2d
 
 #list of common sources for amr 2d codes
 COMMON_MODULES += \
