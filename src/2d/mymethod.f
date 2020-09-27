@@ -181,8 +181,8 @@ c
             call getXface_gauss(irow,j,xface,yface,irr,mitot,mjtot,
      .               xlow,ylow,dx,dy,lstgrd,nn,missing)
             if (missing) then
-               ur(:,j) = fakeState
-               ul(:,j) = fakeState
+               ur(:,j) = fakeStatePrim
+               ul(:,j) = fakeStatePrim
                cycle
             endif
 
