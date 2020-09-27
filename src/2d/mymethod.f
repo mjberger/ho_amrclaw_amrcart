@@ -178,7 +178,7 @@ c
 c
         do 612  nn = 1, nlinequad
           do 611 j = 2, mjtot-2
-            call getXface(irow,j,xface,yface,irr,mitot,mjtot,
+            call getXface_gauss(irow,j,xface,yface,irr,mitot,mjtot,
      .               xlow,ylow,dx,dy,lstgrd,nn,missing)
             if (missing) then
                ur(:,j) = fakeState
@@ -203,13 +203,14 @@ c
             dxm = xface-xcent
             dym = yface-ycent
 
-            call evalU(Uout,dxm,dym,dx,dy,q,qx,qy,qxx,qxy,qyy,irow,j,
-     &                 k,mitot,mjtot,nvar)
-            ur(:,j) = Uout(:) 
-
             call evalU(Uout,dx,dyp,dx,dy,q,qx,qy,qxx,qxy,qyy,irow+1,j,
      &                 kp,mitot,mjtot,nvar)
+            ur(:,j) = Uout(:) 
+
+            call evalU(Uout,dxm,dym,dx,dy,q,qx,qy,qxx,qxy,qyy,irow,j,
+     &                 k,mitot,mjtot,nvar)
             ul(:,j) = Uout(:) 
+
   611   continue
   
 c

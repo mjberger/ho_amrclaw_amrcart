@@ -48,7 +48,7 @@
 !! \param aux data array for auxiliary variables 
 !! \param naux number of auxiliary variables
 !!
-subroutine bound(time,nvar,ng,valbig,mitot,mjtot,mptr,aux,naux)
+subroutine bound(time,nvar,ng,valbig,mitot,mjtot,mptr,aux,naux,istage)
 
   use amr_module, only: rnode, node, hxposs, hyposs, cornxlo, cornxhi
   use amr_module, only: cornylo, cornyhi, ndilo, ndihi, ndjlo, ndjhi
@@ -152,7 +152,10 @@ subroutine bound(time,nvar,ng,valbig,mitot,mjtot,mptr,aux,naux)
   ! set all exterior (physical)  boundary conditions for this grid at once
   ! used to be done from filpatch, but now only for recursive calls with new patch
   ! where the info matches. more efficient to do whole grid at once, and avoid copying
-  call bc2amr(valbig,aux,mitot,mjtot,nvar,naux,hx,hy,level,time,    &
-              xloWithGhost,xhiWithGHost,yloWithGhost,yhiWithGhost)
+  ! use fewer ghost cells at each stage, but setting external bcs not time accurate
+  if (istage .eq. 1) then  
+     call bc2amr(valbig,aux,mitot,mjtot,nvar,naux,hx,hy,level,time,    &
+                 xloWithGhost,xhiWithGHost,yloWithGhost,yhiWithGhost)
+  endif
 
 end subroutine bound

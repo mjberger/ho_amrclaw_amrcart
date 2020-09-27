@@ -93,7 +93,7 @@ c
    30     continue
           call qinit(nvar,nghost,nx,ny,corn1,corn2,hx,hy,
      &               alloc(loc),naux,alloc(locaux),
-     &               lstgrd,alloc(locirr))
+     &               lstgrd,alloc(locirr),start_time)
 
 c
           mptr  = node(levelptr, mptr)

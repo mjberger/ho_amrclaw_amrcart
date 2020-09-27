@@ -29,8 +29,9 @@ c
       corny = rnode(cornylo,mptr) -  nghost*hy
       time = rnode(timemult,mptr)
 
-      ! need ghost cells to avoid zero divides
-      call bound(time,nvar,nghost,val,mitot,mjtot,mptr,aux,naux)
+      ! need ghost cells to avoid zero divides but wont be used
+      istage = 1
+      call bound(time,nvar,nghost,val,mitot,mjtot,mptr,aux,naux,istage)
       call vctoprm(val,primval,mitot,mjtot,nvar)
 c
       do 20 i=nghost+1,mitot-nghost

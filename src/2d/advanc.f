@@ -80,7 +80,7 @@ c We want to do this regardless of the threading type
          time   = rnode(timemult,mptr)
 c     
           call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,mptr,
-     1               alloc(locaux),naux)
+     1               alloc(locaux),naux,istage)
        end do
 !$OMP END PARALLEL DO
       call system_clock(clock_finishBound,clock_rate)
@@ -184,8 +184,10 @@ c
          endif
 
          if (istage .eq. mstage) then ! final rk update & set new time step
-           call do_final_update(alloc(locnew),alloc(locold),mitot,mjtot,
-     &                          nvar,nghost,mstage)
+           if (mstage .eq. 3) then
+             call do_final_update(alloc(locnew),alloc(locold),mitot,
+     &                          mjtot,nvar,nghost,mstage)
+           endif
            call estdt(alloc(locnew),alloc(locirr),mitot,mjtot,nvar,
      &                hx,hy,dtnew,nghost,alloc(locaux),naux)
 !$OMP CRITICAL (newdt)

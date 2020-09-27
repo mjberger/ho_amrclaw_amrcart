@@ -2,7 +2,7 @@ c
 c -----------------------------------------------------------
 c
        subroutine getXface_gauss(irow,j,xface,yface,irr,mitot,mjtot,
-     .                     xlow,ylow,dx,dy,lstgrd,num, missing)
+     .                     xlow,ylow,dx,dy,lstgrd,num,missing)
 
        use amr_module
        implicit double precision (a-h,o-z)
