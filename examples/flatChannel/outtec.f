@@ -163,7 +163,7 @@ c
          !call channelInit(xcen,ycen,state) 
          ! now does cell average
          call getCellAvgState(nvar,xlowb,ylowb,dx,dy,state,
-     &                        lstgrd,kirr,i,j)
+     &                        lstgrd,kirr,i,j,time)
          !errprim(:) = qp(:,i,j) - state
          errprim(:) = q(:,i,j) - state ! altho for now in cons vars
          rhot = state(1)
