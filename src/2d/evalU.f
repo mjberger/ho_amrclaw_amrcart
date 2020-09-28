@@ -20,11 +20,14 @@ c
        ! deltax,y is distance from centroid to edge
        ! dx,dy is mesh width
 
+       shiftxx = poly(8,1,kirr)
+       shiftxy = poly(9,1,kirr)
+       shiftyy = poly(10,1,kirr)
 
        Uout(:) = q(:,i,j) + deltax*qx(:,i,j)+ deltay*qy(:,i,j)
-     &          + 0.5d0*qxx(:,i,j)*(deltax**2-(dx**2)*poly(8,1,kirr)  )
-     &          +       qxy(:,i,j)*(deltax*deltay-dx*dy*poly(9,1,kirr))
-     &          + 0.5d0*qyy(:,i,j)*(deltay**2-(dy**2)*poly(10,1,kirr) )
+     &          + 0.5d0*qxx(:,i,j)*(deltax**2-shiftxx)  
+     &          + qxy(:,i,j)*(deltax*deltay-shiftxy)
+     &          + 0.5d0*qyy(:,i,j)*(deltay**2-shiftyy )
 
       return
       end

@@ -41,6 +41,8 @@ c     # later will add curved boundary options
 c
 c       =======================================================
 c
+      write(*,*)"Resetting pr for debugging in irregFlux_gauss"
+
       k = iabs(nxtirr(lstgrd))
       do while (k .ne. 0) 
 c
@@ -124,6 +126,8 @@ c      .   + 0.5d0*qyy(3,ix0,iy0)*( ydif**2 -(dy**2)*poly(10,1,k) )
 c     
 c          ##  NEW WAY: NO RP, JUST PRESSURE AT BNDRY
 c     
+           pr = 1.d0
+
            firreg(1,k) = firreg(1,k) + 0.5d0*(  0.d0          )
            firreg(2,k) = firreg(2,k) + 0.5d0*(  rlen*alf*pr   )
            firreg(3,k) = firreg(3,k) + 0.5d0*(  rlen*beta*pr  )

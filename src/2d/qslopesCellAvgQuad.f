@@ -226,9 +226,9 @@ c     # at*a = c. solve at*b = d, aw = b.  reuse b.
                 w(1) = (b(1,m)-a(1,5)*w(5)-a(1,4)*w(4)
      &               -a(1,3)*w(3)-a(1,2)*w(2))/a(1,1)
 
-                qyy(m,ix0,iy0)  =  w(5)  ! no 1/2 as in taylor series
+                qyy(m,ix0,iy0)  =  w(5)  
                 qxy(m,ix0,iy0)  =  w(4)
-                qxx(m,ix0,iy0)  =  w(3)  ! no 1/2 as in taylor series
+                qxx(m,ix0,iy0)  =  w(3) 
                 qy(m,ix0,iy0)   =  w(2)
                 qx(m,ix0,iy0)   =  w(1)
 c
