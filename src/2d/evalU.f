@@ -25,9 +25,9 @@ c
        shiftyy = poly(10,1,kirr)
 
        Uout(:) = q(:,i,j) + deltax*qx(:,i,j)+ deltay*qy(:,i,j)
-     &          + 0.5d0*qxx(:,i,j)*(deltax**2-shiftxx)  
+     &          + qxx(:,i,j)*(0.5d0*deltax**2-shiftxx)  
      &          + qxy(:,i,j)*(deltax*deltay-shiftxy)
-     &          + 0.5d0*qyy(:,i,j)*(deltay**2-shiftyy )
+     &          + qyy(:,i,j)*(0.5d0*deltay**2-shiftyy )
 
       return
       end
