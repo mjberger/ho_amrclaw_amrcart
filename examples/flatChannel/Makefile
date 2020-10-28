@@ -25,16 +25,19 @@ OVERWRITE ?= True                   # False ==> make a copy of OUTDIR first
 # Environment variable FC should be set to fortran compiler, e.g. gfortran
 
 # Compiler flags can be specified here or set as an environment variable
-FFLAGS ?= -g -C -CB -CU -fpe0 -ftrapuv 
+#FC = ifort
+FC = gfortran-8
+#FFLAGS ?= -g 
 #FFLAGS ?= -O2 -C -CB -CU -fpe0 -ftrapuv -qopenmp  -mcmodel=large
-#FFLAGS ?= -g -fbounds-check -gno-strict-dwarf  -ffpe-trap=invalid,overflow,zero 
+FFLAGS ?= -g -fbounds-check -gno-strict-dwarf  -ffpe-trap=invalid,overflow,zero 
 
 # ---------------------------------
 # package sources for this program:
 # ---------------------------------
 
 #AMRLIB = $(CLAW)/amrclaw/src/2d
-AMRLIB = /data/berger/ho_amrclaw-amrcart/src/2d
+#AMRLIB = /Users/berger/ho_amrclaw-amrcart/src/2d
+AMRLIB = /Users/berger/ho_amrclaw_amrcart/src/2d
 include $(AMRLIB)/Makefile.amr_2d
 
 # ---------------------------------------
@@ -56,19 +59,19 @@ MODULES = \
 SOURCES = \
   setprob.f \
   qinit.f \
-  getCellAvgState.f \
   fbody.f \
   bc2amr.f90 \
   channelInit.f \
-  bound.f90 \
-  $(AMRLIB)/vrmc_llf.f \
+  $(AMRLIB)/vrmc_vl.f \
   $(AMRLIB)/mymethod.f \
   $(AMRLIB)/SRD_cellMerge.f \
   $(AMRLIB)/fixed_vector_lim_allineq.f \
   $(AMRLIB)/fixed2_Simplex_allineq.f \
   outtec.f \
   dumptec.f \
+  irregFlux.f \
 
+#  $(AMRLIB)/vrmc_llf.f \
 #  $(AMRLIB)/SRD_normalWithGhostQuadratic.f \
 #  $(AMRLIB)/SRD_quadratic.f \
 #  $(AMRLIB)/lp_qslopesWithGhostAvgQuadratic.f \

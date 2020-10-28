@@ -18,6 +18,7 @@ c
       logical    vtime
       integer omp_get_thread_num, omp_get_max_threads
       integer mythread/0/, maxthreads/1/
+      integer dobcstage
       integer listgrids(numgrids(level))
       integer clock_start, clock_finish, clock_rate
       integer clock_startStepgrid,clock_startBound,clock_finishBound
@@ -50,6 +51,8 @@ c
 c  mjb adapted May 18, 2020 to do SRD call after all grdis updated and new
 c ghost cell values copied in
 
+      dobcstage = 4   ! indicates not to do external bc, only internal
+
       do istage = 1, mstage
 
       hx   = hxposs(level)
@@ -65,7 +68,7 @@ c     maxthreads initialized to 1 above in case no openmp
 
 c We want to do this regardless of the threading type
 !$OMP PARALLEL DO PRIVATE(j,locnew, locaux, mptr,nx,ny,mitot,
-!$OMP&                    mjtot,time,levSt),
+!$OMP&                    mjtot,time,levSt,lstgrd,locirr),
 !$OMP&            SHARED(level, nvar, naux, alloc, intrat, delt,
 !$OMP&                   listOfGrids,listStart,nghost,
 !$OMP&                   node,rnode,numgrids,listgrids,istage),
@@ -79,9 +82,11 @@ c We want to do this regardless of the threading type
          locnew = node(store1,mptr)
          locaux = node(storeaux,mptr)
          time   = rnode(timemult,mptr)
+         locirr = node(permstore,mptr)
+         lstgrd = node(lstptr,mptr)
 c     
           call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,mptr,
-     1               alloc(locaux),naux,istage)
+     1               alloc(locaux),naux,istage,alloc(locirr),lstgrd)
        end do
 !$OMP END PARALLEL DO
       call system_clock(clock_finishBound,clock_rate)
@@ -143,9 +148,11 @@ c
          locnew = node(store1,mptr)
          locaux = node(storeaux,mptr)
          time   = rnode(timemult,mptr)
+         locirr = node(permstore,mptr)
+         lstgrd = node(lstptr,mptr)
 c     
           call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,mptr,
-     1               alloc(locaux),naux)
+     1               alloc(locaux),naux,dobcstage,alloc(locirr),lstgrd)
 
        end do
 !$OMP END PARALLEL DO
@@ -156,7 +163,7 @@ c
       timeBoundCPU=timeBoundCPU+cpu_finishBound-cpu_startBound
 
 !$OMP PARALLEL DO PRIVATE(j,locnew, locaux, mptr,nx,ny,lstgrd,xlow,ylow,
-!$OMP&                    mitot,mjtot,time,levSt,locirr,locncount,
+!$OMP&                    mitot,mjtot,time,levSt,locirr,
 !$OMP&                    locnumHoods),
 !$OMP&            SHARED(level, nvar, naux, alloc, intrat, delt,dtnew,
 !$OMP&                   listOfGrids,listStart,nghost,istage,mstage,
@@ -173,15 +180,14 @@ c
          locaux = node(storeaux,mptr)
          time   = rnode(timemult,mptr)
          locirr = node(permstore,mptr)
-         locncount = locirr + mitot*mjtot
-         locnumHoods = locncount + mitot*mjtot
+         locnumHoods = locirr + mitot*mjtot
          lstgrd = node(lstptr,mptr)
          xlow = rnode(cornxlo,mptr) - nghost*hx
          ylow = rnode(cornylo,mptr) - nghost*hy
          if (ismp .eq. 1) then
-            call srd_cellMerge(alloc(locnew),nvar,alloc(locirr),mitot,
-     &                      mjtot,lstgrd,hx,hy,nghost,xlow,ylow,istage,
-     &                      alloc(locncount),alloc(locnumHoods),mptr)
+            call srd_cellMerge(alloc(locnew),nvar,alloc(locirr),
+     &                       mitot,mjtot,lstgrd,hx,hy,nghost,xlow,ylow,
+     &                       dobcstage,alloc(locnumHoods),mptr)
          endif
 
          if (istage .eq. mstage) then ! final rk update & set new time step
@@ -289,8 +295,7 @@ c
 
          locaux = node(storeaux,mptr)
          locirr = node(permstore,mptr)
-         locncount = locirr + mitot*mjtot
-         locnumHoods = locncount + mitot*mjtot
+         locnumHoods = locirr + mitot*mjtot
          locreconx  = locnumHoods + mitot*mjtot
          locrecony  = locreconx + mitot*mjtot
 c
@@ -320,7 +325,7 @@ c
           call mymethod(alloc(locnew),alloc(locold),mitot,mjtot,nghost,
      1                  delt,dtnew,hx,hy,nvar,xlow,ylow,mptr,naux,
      2                  alloc(locaux),alloc(locirr),node(lstptr,mptr),
-     3                  alloc(locncount),alloc(locnumHoods),vtime,
+     3                  alloc(locnumHoods),vtime,
      4                  istage,time,alloc(locreconx),alloc(locrecony))
          else if (dimensional_split .eq. 1) then
 c           # Godunov splitting

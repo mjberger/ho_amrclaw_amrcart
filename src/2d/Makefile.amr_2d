@@ -33,14 +33,14 @@ COMMON_SOURCES += \
   $(AMRLIB)/getYface.f \
   $(AMRLIB)/getXface_gauss.f \
   $(AMRLIB)/getYface_gauss.f \
-  $(AMRLIB)/irregFlux.f \
+  $(AMRLIB)/getCellAvgState.f \
   $(AMRLIB)/irregFlux_gauss.f \
   $(AMRLIB)/evalU.f \
   $(AMRLIB)/vctoprm.f \
   $(AMRLIB)/vprmtoc.f \
   $(AMRLIB)/addneighbors.f \
   $(AMRLIB)/makep.f \
-  $(AMRLIB)/area.f \
+  $(AMRLIB)/triangle_area.f \
   $(AMRLIB)/isig.f \
   $(AMRLIB)/dumpBndry.f \
   $(AMRLIB)/zeroin.f \
@@ -85,6 +85,7 @@ COMMON_SOURCES += \
   $(AMRLIB)/lstget.f \
   $(AMRLIB)/setirr.f \
   $(AMRLIB)/makeFVRecon.f \
+  $(AMRLIB)/makeMergeHood.f \
   $(AMRLIB)/weights.f \
   $(AMRLIB)/setquadrature.f \
   $(AMRLIB)/mkbdry.f \

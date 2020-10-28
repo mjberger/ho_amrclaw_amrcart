@@ -64,12 +64,13 @@ c :::::::::::::::::::::::::::::::::::::::;::::::::::::::::::::
               node(storeaux,mptr) = locaux
               ! get space for irr, and for ncount and numhoods too
               ! adding space for recon status 
-              node(permstore,mptr) = igetsp(5*mitot*mjtot) 
+              node(permstore,mptr) = igetsp(4*mitot*mjtot) 
               locirr = node(permstore,mptr)
-              lociir = locirr + 3*mitot*mjtot
+              locnumhoods = locirr + mitot*mjtot
+              lociir = locnumhoods + mitot*mjtot
               locjjr = lociir + mitot*mjtot
               call setirr(mitot,mjtot,mptr,quad,
-     &                    gradThreshold,alloc(locirr),
+     &                    alloc(locirr),alloc(locnumhoods),
      &                    alloc(lociir),alloc(locjjr))
               lstgrd = node(lstptr,mptr)
               ! do it all the time now, needed for RK

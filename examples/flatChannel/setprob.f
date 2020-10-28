@@ -92,6 +92,10 @@ c     # comment lines starting with #:
          endif
       endif
 
+      read(7,*) areaFrac
+      write(*,*)"merging cell volume fraction = ", areaFrac
+      write(outunit,*)"merging cell volume fraction = ", areaFrac
+
       iprob = 19
       write(*,*)"Setprob is setting iprob = ",iprob
       write(outunit,*)"Setprob is setting iprob = ",iprob

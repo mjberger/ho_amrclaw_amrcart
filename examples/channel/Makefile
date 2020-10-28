@@ -25,6 +25,7 @@ OVERWRITE ?= True                   # False ==> make a copy of OUTDIR first
 # Environment variable FC should be set to fortran compiler, e.g. gfortran
 
 # Compiler flags can be specified here or set as an environment variable
+FC = gfortran-8
 #FFLAGS ?= -g -C -CB -CU -fpe0 -ftrapuv 
 #FFLAGS ?= -O2 -C -CB -CU -fpe0 -ftrapuv -qopenmp  -mcmodel=large
 FFLAGS ?= -g -fbounds-check -gno-strict-dwarf  -ffpe-trap=invalid,overflow,zero 
@@ -34,7 +35,7 @@ FFLAGS ?= -g -fbounds-check -gno-strict-dwarf  -ffpe-trap=invalid,overflow,zero
 # ---------------------------------
 
 #AMRLIB = $(CLAW)/amrclaw/src/2d
-AMRLIB = /Users/berger/ho_amrclaw-amrcart/src/2d
+AMRLIB = /Users/berger/ho_amrclaw_amrcart/src/2d
 include $(AMRLIB)/Makefile.amr_2d
 
 # ---------------------------------------
@@ -56,11 +57,9 @@ MODULES = \
 SOURCES = \
   setprob.f \
   qinit.f \
-  getCellAvgState.f \
   fbody.f \
   bc2amr.f90 \
   channelInit.f \
-  bound.f90 \
   $(AMRLIB)/vrmc_llf.f \
   $(AMRLIB)/mymethod.f \
   $(AMRLIB)/SRD_cellMerge.f \

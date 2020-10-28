@@ -3,7 +3,7 @@ c -------------------------------------------------------------
 c
       subroutine outtec(q,nvar,mptr,irr,mitot,mjtot,
      1                  lstgrd,dx,dy,xlow,ylow,time,
-     2                  ncount,numHoods,ibunit)
+     2                  numHoods,ibunit)
 c
       use amr_module
       implicit double precision (a-h,o-z)
@@ -12,7 +12,7 @@ c
       dimension state(nvar)
       ! use temporary array for qp to avoid converting back
       dimension qp(nvar,mitot,mjtot)  
-      integer ncount(mitot,mjtot), numHoods(mitot,mjtot) 
+      integer numHoods(mitot,mjtot) 
       integer irr(mitot,mjtot) 
       dimension qx(nvar,mitot,mjtot),qy(nvar,mitot,mjtot)
       dimension qxx(nvar,mitot,mjtot),qyy(nvar,mitot,mjtot)
@@ -157,7 +157,7 @@ c
          end do
 
          write(14,102) xc,yc,(valprim(ivar),ivar=1,nvar),
-     &                 xcen,ycen,ncount(i,j),numHoods(i,j),i,j,
+     &                 xcen,ycen,ncount(kirr),numHoods(i,j),i,j,
      &                 kirr,volFrac,mptr
          ! this computes and  outputs cell centered error for 2nd order scheme
          !call channelInit(xcen,ycen,state) 
@@ -168,7 +168,7 @@ c
          errprim(:) = q(:,i,j) - state ! altho for now in cons vars
          rhot = state(1)
          write(13,102) xc,yc,(errprim(ivar),ivar=1,nvar),
-     &                  xcen,ycen,ncount(i,j),numHoods(i,j),i,j,
+     &                  xcen,ycen,ncount(kirr),numHoods(i,j),i,j,
      &                  kirr,volFrac,mptr
  102    format(8e25.15,5i8,1e10.2,i5)
         end do

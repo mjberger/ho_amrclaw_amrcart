@@ -38,12 +38,12 @@ def setrun(claw_pkg='amrclaw'):
     #------------------------------------------------------------------
 
     probdata = rundata.new_UserData(name='probdata',fname='setprob.data')
-    probdata.add_param('mstage ',3, 'RK method order (coeffs set in setprob)')
+    probdata.add_param('mstage ',1, 'RK method order (coeffs set in setprob)')
     probdata.add_param('ismp',    0,  ' stabilization method')
+    ## 0 = none
     ## 1 = SRD
-    ## 2 = DRD
     #probdata.add_param('pwconst', True,  ' no slopes in plotting ')
-    probdata.add_param('pwconst', True,  ' no slopes in plotting ')
+    probdata.add_param('pwconst', False,  ' no slopes in plotting ')
     probdata.add_param('max1d', 120,' max size each dir for grid patches')
     probdata.add_param('nloops',     2,  '# closed loops or segments')
     probdata.add_param('xloop1',    0.,  ' starting pt x')
@@ -54,6 +54,7 @@ def setrun(claw_pkg='amrclaw'):
     probdata.add_param('limitTile',  0, ' 1 = BJ, 2 = LP')
     probdata.add_param('lpChoice',   2, ' 1 = restrictive, 2 = relaxed, if LP limiter use')
     probdata.add_param('igradChoice', 3, ' 0=none, 1=1storder, 2=ptwise quad,3=cellavg quad')
+    probdata.add_param('areaFrac', 0.5, ' merge until volume = areaFrac*dx*dx')
 
 
     #------------------------------------------------------------------
@@ -178,7 +179,8 @@ def setrun(claw_pkg='amrclaw'):
 
     # Initial time step for variable dt.
     # (If dt_variable==0 then dt=dt_initial for all steps)
-    clawdata.dt_initial = 2.000000e-02
+    #clawdata.dt_initial = 2.000000e-02
+    clawdata.dt_initial = .022720930233
 
     # Max time step to be allowed if variable dt used:
     clawdata.dt_max = 1.000000e+99

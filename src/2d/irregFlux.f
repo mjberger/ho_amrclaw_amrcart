@@ -67,7 +67,8 @@ c     # compute (alf,beta) = unit normal to boundary pointing in.
          beta = (hsx2-hsx1)/rlen
 c     
 c     # compute boundary data  - q already has primitive variables 
-c     
+c   ACTUALLY q in CONS now, for higher order version. not yet prim
+
          rho_c    = q(1,ix0,iy0)
          u_c      = q(2,ix0,iy0)
          v_c      = q(3,ix0,iy0)
