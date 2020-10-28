@@ -345,8 +345,9 @@ module amr_module
                      xcentMerge(irrsize),ycentMerge(irrsize),         &
                      qmshifts(3,irrsize)
      
-     integer ::     ixg(irrsize), iyg(irrsize), nxtirr(irrsize),  &
-                    svi(irrsize), svj(irrsize)
+     integer ::     ixg(irrsize), iyg(irrsize), nxtirr(irrsize),      &
+                    svi(irrsize), svj(irrsize), ncount(irrsize)
+     integer ::     iidx(10,irrsize), jidx(10,irrsize)
 
      real(kind=8)   xloops(10), yloops(10)
      integer     :: nloops, lhead

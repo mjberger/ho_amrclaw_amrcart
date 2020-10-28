@@ -1,15 +1,16 @@
 c
 c ------------------------------------------------------
 c
-      subroutine setirr(mitot,mjtot,mptr,quad,gradThreshold,irr,
-     &                  iir,jjr)
+      subroutine setirr(mitot,mjtot,mptr,quad,irr,
+     &                  numHoods,iir,jjr)
 c
       use amr_module
       implicit double precision (a-h,o-z)
-      integer  irr(mitot,mjtot)
+      integer  irr(mitot,mjtot), numHoods(mitot,mjtot)
       integer  iir(mitot,mjtot),  jjr(mitot,mjtot)
       logical  debug/.false./,done
       character ch
+      include "cuserdt.i"
 c
 c lstgrd = starting index into the linked list of irregular info.
 c    for grid mptr. In fact, the first entry is the "regular"
@@ -46,8 +47,8 @@ c
        ylow  = rnode(cornylo,mptr) - nghost*hy
        centx = xlow + .5d0*hx
        centy = ylow + .5d0*hy
-       do 11 i = 1, mitot
-       do 10 j = 1, mjtot 
+       do  i = 1, mitot
+       do  j = 1, mjtot 
           x = centx + (i-1)*hx
           y = centy + (j-1)*hy
           d = fbody(x,y)
@@ -56,8 +57,8 @@ c
           else
              irr(i,j) = lstgrd
           endif
- 10    continue
- 11    continue
+       end do  
+       end do  
 c
 c look for sign changes in irr as an indication of the starting
 c or ending location of a boundary segment. only for starting
@@ -161,10 +162,14 @@ c             save tots in rest of poly
   71      continue
 
        !! set up 3rd order reconstruction stencils and merging nhoods
-       call makeFVReconHood(irr,mitot,mjtot,lwidth,lstgrd,hx,hy,
+       call makeFVReconHood(irr,mitot,mjtot,nghost,lstgrd,hx,hy,
      &                      reconTOLx,reconTOLy,xlow,ylow,iir,jjr)
-!      call makeReconHood(irr,mitot,mjtot,lwidth,lstgrd,hx,hy,
+!      call makeReconHood(irr,mitot,mjtot,nghost,lstgrd,hx,hy,
 !    &                    recontolx,recontoly,xlow,ylow,initval)
+
+       !! make merging nhood
+       call makeMergeHood(irr,numHoods,mitot,mjtot,nghost,lstgrd,
+     &                    xlow,ylow,hx,hy)
 
        if (debug) then
            write(*,*)" setirr irr grid ", mptr

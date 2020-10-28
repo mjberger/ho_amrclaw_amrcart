@@ -82,7 +82,7 @@
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::;
 
 subroutine bc2amr(val,aux,nrow,ncol,meqn,naux, hx, hy, level, time,   &
-                  xlo_patch, xhi_patch, ylo_patch, yhi_patch) 
+                  xlo_patch, xhi_patch, ylo_patch, yhi_patch,irr,lstgrd) 
 
     use amr_module, only: mthbc, xlower, ylower, xupper, yupper
     use amr_module, only: xperdom,yperdom,spheredom

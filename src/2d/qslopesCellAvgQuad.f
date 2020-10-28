@@ -41,12 +41,19 @@ c     on flow cells. will add unlimited cut gradients
       quad = .false.
       nco = 1
 
-      do 110 ix0 = 2, mitot-1
-      do 110 iy0 = 2, mjtot-1
-c     do 110 ix0 = 1, mitot
-c     do 110 iy0 = 1, mjtot
+c      do 110 ix0 = 2, mitot-1
+c      do 110 iy0 = 2, mjtot-1
+      do 110 ix0 = 1, mitot
+      do 110 iy0 = 1, mjtot
          k = irr(ix0,iy0)
-         if (k .eq. -1) go to 110
+         if (k .eq. -1) then  ! set to 0 for easier debugging
+            qx(:,ix0,iy0) = 0.d0
+            qy(:,ix0,iy0) = 0.d0
+            qxx(:,ix0,iy0) = 0.d0
+            qxy(:,ix0,iy0) = 0.d0
+            qyy(:,ix0,iy0) = 0.d0
+            go to 110
+         endif
 
          if (all_nbors_exist(ix0,iy0,nco,irr,lstgrd,mitot,mjtot)) cycle
 c     

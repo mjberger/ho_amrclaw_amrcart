@@ -485,3 +485,125 @@ c
 
        return
        end
+c
+c ----------------------------------------------------------------------------
+c
+      subroutine  determineDirection(irr,mitot,mjtot,lwidth,nvar,i,j,
+     &                               idir,areaMin)
+
+      
+      use amr_module
+
+      implicit double precision (a-h, o-z)
+      dimension irr(mitot,mjtot)
+      dimension area(4), inum(4)
+      logical IS_GHOST
+
+      IS_GHOST(i,j) = (i .le. lwidth .or. i .gt. mitot-lwidth .or.
+     .                 j .le. lwidth .or. j .gt. mjtot-lwidth)
+
+
+        ! determine irregular face normal
+        ! compute volume in the four directions
+        ! ignore volumes that are < tolerance
+
+         k = irr(i,j)
+         do 20 kside=1,6
+            if (poly(kside+2,1,k).eq.-11.) then
+               x1 = poly(kside,1,k)
+               y1 = poly(kside,2,k)
+               x2 = poly(kside+1,1,k)
+               y2 = poly(kside+1,2,k)
+               go to 25
+            endif
+ 20      continue
+ 25      continue
+c
+c        # boundary segment face:
+c        ------------------------
+
+c     # compute (vx,vy) = unit normal to boundary pointing in.
+         hsx1 = x2
+         hsx2 = x1
+         hsy1 = y2
+         hsy2 = y1
+         rlen = dsqrt((hsy1-hsy2)**2 + (hsx1-hsx2)**2)
+         vx = (hsy1-hsy2)/rlen
+         vy = (hsx2-hsx1)/rlen
+
+
+
+
+        do 30 id = 1,4
+            inum(id) = 0
+            icurr = i
+            jcurr = j
+            kcurr = irr(icurr,jcurr)
+            area(id) = ar(kcurr)
+            do while (area(id) < areaMin)
+                if(id .eq. 1) then
+                    icurr = icurr - 1
+                elseif(id .eq. 2) then
+                    icurr = icurr + 1
+                elseif(id .eq. 3) then
+                    jcurr = jcurr - 1
+                elseif(id .eq. 4) then
+                    jcurr = jcurr + 1
+                endif
+
+                if(icurr < 1 .or. jcurr < 1) then
+                   idir = -1
+                   exit
+                endif
+
+                if( icurr > mitot .or. jcurr > mjtot) then
+                  idir = -1
+                  exit
+                endif
+
+                kcurr = irr(icurr,jcurr)
+                if (kcurr .eq. -1) then
+                    idir = -1
+                    exit
+                endif
+
+                area(id) = area(id) + ar(kcurr)
+                inum(id) = inum(id) + 1
+            end do
+  30    continue
+
+
+        ! find the direction that has max v dot x  such that
+        ! area(id) > areaMin.
+
+        closest = -1.d0
+        idxclosest = -1
+        do 50 id = 1,4
+           if (area(id) > areaMin) then
+                if(id .eq. 1) then
+                    dirx = -1.d0
+                    diry =  0.d0
+                elseif(id .eq. 2) then
+                    dirx = 1.d0
+                    diry =  0.d0
+                elseif(id .eq. 3) then
+                    dirx =  0.d0
+                    diry = -1.d0
+                else
+                    dirx =  0.d0
+                    diry =  1.d0
+                endif
+
+                temp = vx*dirx + vy*diry
+                if(temp > closest) then
+                    idxclosest = id
+                    closest = temp
+                endif
+
+           endif
+  50    continue
+
+        if(idxclosest .eq. -1) print *, "PROBLEM with direction."
+        idir = idxclosest
+      return
+      end

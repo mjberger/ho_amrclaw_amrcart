@@ -91,7 +91,6 @@ contains
 
     subroutine set_gauges(restart, num_eqn, num_aux, fname)
 
-        use utility_module, only: get_value_count
 
         implicit none
 

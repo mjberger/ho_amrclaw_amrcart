@@ -41,7 +41,6 @@ c     # later will add curved boundary options
 c
 c       =======================================================
 c
-      write(*,*)"Resetting pr for debugging in irregFlux_gauss"
 
       k = iabs(nxtirr(lstgrd))
       do while (k .ne. 0) 
@@ -96,42 +95,43 @@ c
            ydif = (bypt-y0)
 
            rho_c    = q(1,ix0,iy0)
-           u_c      = q(2,ix0,iy0)
-           v_c      = q(3,ix0,iy0)
-           pr_c     = q(4,ix0,iy0)
+           rhou_c   = q(2,ix0,iy0)
+           rhov_c   = q(3,ix0,iy0)
+           rhoE_c   = q(4,ix0,iy0)
 
-c          comment out other fields only need density in this approach
-c          if want to go back to solving RP and rotating see older codes
+c   evaluate at gauss points on boundary in conserved vars to get
+c   pointwise values, then compute pressure
 
-c          rho = rho_c + xdif*qx(1,ix0,iy0) + ydif*qy(1,ix0,iy0)
-c      .   + 0.5d0*qxx(1,ix0,iy0)*( xdif**2-(dx**2)*poly(8,1,k)   )
-c      .   +       qxy(1,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
-c      .   + 0.5d0*qyy(1,ix0,iy0)*( ydif**2 -(dy**2)*poly(10,1,k) )
+          rho = rho_c + xdif*qx(1,ix0,iy0) + ydif*qy(1,ix0,iy0)
+     .   + qxx(1,ix0,iy0)*(0.5d0*xdif**2-(dx**2)*poly(8,1,k)   )
+     .   + qxy(1,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
+     .   + qyy(1,ix0,iy0)*(0.5d0*ydif**2 -(dy**2)*poly(10,1,k) )
 
-c          u   = u_c +   xdif*qx(2,ix0,iy0,2) + ydif*qy(2,ix0,iy0,2)
-c      .   + 0.5d0*qxx(2,ix0,iy0)*( xdif**2-(dx**2)*poly(8,1,k)   )
-c      .   +       qxy(2,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
-c      .   + 0.5d0*qyy(2,ix0,iy0)*( ydif**2 -(dy**2)*poly(10,1,k) )
+          rhou = rhou_c + xdif*qx(2,ix0,iy0) + ydif*qy(2,ix0,iy0)
+     .   + qxx(2,ix0,iy0)*( 0.5d0*xdif**2-(dx**2)*poly(8,1,k)   )
+     .   + qxy(2,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
+     .   + qyy(2,ix0,iy0)*( 0.5d0*ydif**2 -(dy**2)*poly(10,1,k) )
 
-c          v   = v_c +   xdif*qx(3,ix0,iy0) + ydif*qy(3,ix0,iy0)
-c      .   + 0.5d0*qxx(3,ix0,iy0)*( xdif**2-(dx**2)*poly(8,1,k)   )
-c      .   +       qxy(3,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
-c      .   + 0.5d0*qyy(3,ix0,iy0)*( ydif**2 -(dy**2)*poly(10,1,k) )
+          rhov = rhov_c +   xdif*qx(3,ix0,iy0) + ydif*qy(3,ix0,iy0)
+     .   + qxx(3,ix0,iy0)*( 0.5d0*xdif**2-(dx**2)*poly(8,1,k)   )
+     .   + qxy(3,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
+     .   + qyy(3,ix0,iy0)*( 0.5d0*ydif**2 -(dy**2)*poly(10,1,k) )
 
-           pr  = pr_c +  xdif*qx(4,ix0,iy0) + ydif*qy(4,ix0,iy0)
-     &      + 0.5d0*qxx(4,ix0,iy0)*( xdif**2-(dx**2)*poly(8,1,k)   )
-     &      +       qxy(4,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
-     &      + 0.5d0*qyy(4,ix0,iy0)*( ydif**2 -(dy**2)*poly(10,1,k) )
+           rhoE  = rhoE_c +  xdif*qx(4,ix0,iy0) + ydif*qy(4,ix0,iy0)
+     &      + qxx(4,ix0,iy0)*( 0.5d0*xdif**2-(dx**2)*poly(8,1,k)   )
+     &      + qxy(4,ix0,iy0)*( xdif*ydif-dx*dy*poly(9,1,k) )
+     &      + qyy(4,ix0,iy0)*( 0.5d0*ydif**2 -(dy**2)*poly(10,1,k) )
 
 c     
-c          ##  NEW WAY: NO RP, JUST PRESSURE AT BNDRY
+c          ##  JUST NEED PRESSURE AT BNDRY
 c     
-           pr = 1.d0
+           rmomsq = (rhou**2 + rhov**2)
+           pr = 0.4d0*(rhoE - 0.5d0*rmomsq/rho)
 
-           firreg(1,k) = firreg(1,k) + 0.5d0*(  0.d0          )
+           !firreg(1,k) = firreg(1,k) + 0.5d0*(  0.d0          )
            firreg(2,k) = firreg(2,k) + 0.5d0*(  rlen*alf*pr   )
            firreg(3,k) = firreg(3,k) + 0.5d0*(  rlen*beta*pr  )
-           firreg(4,k) = firreg(4,k) + 0.5d0*(  0.d0          )
+           !firreg(4,k) = firreg(4,k) + 0.5d0*(  0.d0          )
  33     continue
         k = iabs(nxtirr(k))
       end do

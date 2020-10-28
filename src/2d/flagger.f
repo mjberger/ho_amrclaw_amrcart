@@ -122,8 +122,9 @@ c         ## at initial time want to use initial conditions (so retain symmetry 
          if (start_time+possk(lcheck) .ne. time) then !exact equality test-relying on ieee arith repeatability
 c            do in other order in case user messes up locbig in flag2refine, already have
 c            them in locnew
+             !  last argument 1 (as in 1st stage) means to call external boundary conditions 
              call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,mptr,
-     1                  alloc(locaux),naux)
+     1                  alloc(locaux),naux,1)
              locuse = locnew ! flag based on newest vals
              if (flag_richardson) then
                do 10 i = 1, mitot*mjtot*nvar

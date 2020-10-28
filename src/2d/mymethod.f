@@ -3,7 +3,7 @@ c -----------------------------------------------------
 c
       subroutine mymethod(q,qold,mitot,mjtot,lwidth,
      &                  dtn,dtnewn,dx,dy,nvar,xlow,ylow,mptr,maux,
-     &                  aux,irr,lstgrd,ncount,numHoods,vtime,
+     &                  aux,irr,lstgrd,numHoods,vtime,
      &                  istage,time,iir,jir)
 c
 c -----------------------------------------------------
@@ -29,7 +29,7 @@ c
       dimension xp(max1d),yp(max1d)
       dimension iir(mitot,mjtot),jir(mitot,mjtot) 
 
-      integer   irr(mitot,mjtot),ncount(mitot,mjtot)
+      integer   irr(mitot,mjtot)
       integer   numHoods(mitot,mjtot)
 
       common   /RKmethod/ coeff(5),mstage
@@ -88,8 +88,8 @@ c     # initializations
       qxy = 0.d0
       qyy = 0.d0
 
-      if (istage .eq. 3) then ! need to evaluate at qtemp, to q2 to make q3
-         q = .75d0*qold + .25*q    ! q is q2  ! this is qtemp, called q to use below
+      if (istage .eq. 3) then 
+         q = .75d0*qold + .25*q  ! q is q2, stage 2, done this way for srd  
       endif
 
 c need routine to set face lengths and  midpoints
@@ -112,27 +112,31 @@ c
        !! now convert to pointwise primitive values
        !! for first test reconstruct in conserved vars`
        !call vctoprm(mitot,mjtot,nvar,
-    !&               dx,dy,lstgrd,xlow,ylow,irr,
-    !&               q,q,qx,qy,qxx,qxy,qyy)
+!    &               dx,dy,lstgrd,xlow,ylow,irr,
+!    &               q,q,qx,qy,qxx,qxy,qyy)
 
        !! now compute slopes in primitive vars 
-    !   call qslopes(q,qx,qy,qxx,qxy,qyy,
-    ! &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
-    ! &                 xlow,ylow,mptr,nvar,istage)
+!       call qslopes(q,qx,qy,qxx,qxy,qyy,
+!     &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
+!     &                 xlow,ylow,mptr,nvar,istage)
 
 
 c
 c  loop through rows of q calculating fluxes one row at time
 c  vertical riemann problem first
 c
-      do 800 jcol = 2, mjtot-2 
+      !do 800 jcol = 1, mjtot-1 
+      do 800 jcol = 1+2*(istage-1), mjtot-1-2*(istage-1) 
 c
+         ! would be better for cache  to have nn as inside loop 
+         ! but then would need to have multiple vectors to save, call vrm, etc.
          do 512  nn = 1, nlinequad
             do ii = 1, msize
               ur(:,ii) = fakeStateCons(:) !initialize so ghost and missing vals still ok
               ul(:,ii) = fakeStateCons(:) 
             end do
-            do 511 i = 2, mitot-2
+            !do 511 i = 1, mitot
+            do 511 i = 1+2*(istage-1), mitot-2*(istage-1)
                call getYface_gauss(i,jcol,xface,yface,irr,mitot,mjtot,
      &                             xlow,ylow,dx,dy,lstgrd,nn,missing)
                if (missing) cycle
@@ -163,9 +167,9 @@ c
 c store fluxes in ff vector, copy into permanent flux array
 c
   511      continue
-           call vrmc(ur,ul,ff,2,mitot-2,yrp,msize)
+           call vrmc(ur,ul,ff,1,mitot,yrp,msize)
 c
-           do 720 k = lwidth-2, mitot-lwidth+3
+           do 720 k = 1, mitot
               g(:,k,jcol+1) = g(:,k,jcol+1) + wline(nn)*ff(:,k)
   720      continue
   512    continue ! end loop over # gauss pts
@@ -174,10 +178,12 @@ c
 c
 c    Horizontal riemann problems next
 c
-      do 900 irow = 2, mitot-2
+      !do 900 irow = 1, mitot-1
+      do 900 irow = 1+2*(istage-1), mitot-1-2*(istage-1)
 c
         do 612  nn = 1, nlinequad
-          do 611 j = 2, mjtot-2
+          !do 611 j = 1, mjtot
+          do 611 j = 1+2*(istage-1), mjtot-2*(istage-1)
             call getXface_gauss(irow,j,xface,yface,irr,mitot,mjtot,
      .               xlow,ylow,dx,dy,lstgrd,nn,missing)
             if (missing) then
@@ -203,7 +209,7 @@ c
             dxm = xface-xcent
             dym = yface-ycent
 
-            call evalU(Uout,dx,dyp,dx,dy,q,qx,qy,qxx,qxy,qyy,irow+1,j,
+            call evalU(Uout,dxp,dyp,dx,dy,q,qx,qy,qxx,qxy,qyy,irow+1,j,
      &                 kp,mitot,mjtot,nvar)
             ur(:,j) = Uout(:) 
 
@@ -216,10 +222,10 @@ c
 c
 c store fluxes in ff 
 c
-         call vrmc(ur,ul,ff,2,mjtot-2,xrp,msize)
+         call vrmc(ur,ul,ff,1,mjtot,xrp,msize)
 c
-         do 721 k = lwidth-2, mjtot-lwidth+3
-            f(:,irow+1,k) = f(:,irow+1,k) + ff(:,k)
+         do 721 k = 1, mjtot
+            f(:,irow+1,k) = f(:,irow+1,k) + wline(nn)*ff(:,k)
   721    continue
   612  continue  ! end loop over gauss pts
 c
@@ -247,8 +253,8 @@ c      # finite volume update
 c
          c      = coeff(istage)
          ar(-1) = 1.d0   ! prevent zero divides for solid cells
-         do 918 j = lwidth+1, mjtot-lwidth
-         do 917 i = lwidth+1, mitot-lwidth
+         do 918 j = 2, mjtot-1
+         do 917 i = 2, mitot-1
 
          k = irr(i,j)
            do m = 1, nvar
@@ -272,13 +278,13 @@ c
 
 c       call checkPhys(q,irr,mitot,mjtot,mptr,istage,
 c    .                  lstgrd,'from my_method')
-c       call checkPhysInt(q,mitot,mjtot,mptr,istage,
-c    .                    lwidth,'from my_method')
-c       write(*,*)"done with physCheckInt for grid ",mptr
+c       write(*,*)"done with checkPhys for grid ",mptr
 
 c     write(*,*)"calling symcheck after update stage ",istage,
 c    .          " before srd"
 c     call symcheck(q,irr,mitot,mjtot,nvar,lwidth)
+c
+c     srd now called from advanc, so that can redo ghost cells at each stage
 
 c
 c     # output irregular fluxes for debugging purposes:

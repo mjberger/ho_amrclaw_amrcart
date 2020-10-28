@@ -20,6 +20,7 @@ c
        ! deltax,y is distance from centroid to edge
        ! dx,dy is mesh width
 
+       Uout = 0.d0
        shiftxx = poly(8,1,kirr)
        shiftxy = poly(9,1,kirr)
        shiftyy = poly(10,1,kirr)

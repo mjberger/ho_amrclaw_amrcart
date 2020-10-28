@@ -3,20 +3,22 @@ c ---------------------------------------------------------------------
 c
        subroutine SRD_cellMerge(q,nvar,irr,mitot,mjtot,lstgrd,
      .                      dx,dy,lwidth,xlow,ylow,istage,
-     .                      ncount,numHoods,mptr)
+     .                      numHoods,mptr)
 
        use amr_module
        implicit double precision (a-h, o-z)
-
        include "cuserdt.i"
+       include "quadrature.i"
+
        dimension q(nvar,mitot,mjtot),  irr(mitot,mjtot)
-       dimension gradmx(nvar,mitot,mjtot), gradmy(nvar,mitot,mjtot)
+       dimension gradmx(nvar,irrsize), gradmy(nvar,irrsize)
+       dimension gradmxx(nvar,irrsize), gradmyy(nvar,irrsize)
+       dimension gradmxy(nvar,irrsize)
 
        dimension valnew(nvar,mitot,mjtot)
        dimension qMerge(nvar,mitot,mjtot), numHoods(mitot,mjtot)
-       dimension nCount(mitot,mjtot)
        dimension mioff(mitot,mjtot),mjoff(mitot,mjtot)
-       dimension fakeState(nvar), qm(nvar), rhs(5,nvar)
+       dimension fakeStateCons(nvar), qm(nvar), rhs(5,nvar)
        dimension a(5,5),b(5),db(nvar)
        dimension nborList(35,2)
        character c2
@@ -47,42 +49,43 @@ c
 c   try cell merging and reconstruction to stabilize updates in small cut cells
 c   calculate all updates using provisional values, then actually do the update
 c   (as in, jacobi rather than gauss seidel)
+c   
+c   the setup for this is called from setirr, and is in routine makeMergeHood
 c ::::::::::::::::
-      areaMin = 0.5d0*ar(lstgrd)  
-      !!areaMin = ar(lstgrd)  
 
 c
 c      some initializations
        ar(lstgrd) = dx*dy   ! area of regular grid cell 
+       areaMin = areaFrac*dx*dy
        qMerge   = 0.d0
 
        ! put in 'normal' values to prevent errors e.g. in converting to prim vars
        ! these fake vals are in conserved variables
-       fakeState(1) = 1.4d0
-       fakeState(2) = 0.d0
-       fakeState(3) = 0.d0
-       fakeState(4) = 2.5d0 !(p/gm1, corresponding to fakestate in method)
+       fakeStateCons(1) = 1.4d0
+       fakeStateCons(2) = 0.d0
+       fakeStateCons(3) = 0.d0
+       fakeStateCons(4) = 2.5d0 !(p/gm1, corresponding to fakestate in method)
 
-c     first make neighborhoods - need count for each cells, and width (nhood above)
-c     nCount is size of neighborhood, numHoods is number of merged nhoods each cells is in
-      call makeNHood(ncount,irr,numHoods,
-     .               mitot,mjtot,lwidth,lstgrd,xlow,ylow,dx,dy,istage,
-     .               mptr,areaMin)
+c   merging nhoods make in makeMergeHood, called from setirr
 
       if (igradChoice .eq. 3) then
         call merge_shifts(irr,mitot,mjtot,lwidth,dx,dy,xlow,ylow,lstgrd,
-     .                  numHoods,ncount)
+     .                  numHoods)
       endif
 
 
 c       form qMerge vals 
-        do 10 j = lwidth/2, mjtot-lwidth/2
-        do 10 i = lwidth/2, mitot-lwidth/2
+        do 11 j = 1, mjtot
+        do 10 i = 1, mitot
             k = irr(i,j)
             if (k .eq. -1) go to 10 ! no solid cells
             call getCellCentroid(lstgrd,i,j,xc,yc,xlow,ylow,dx,dy,k)
-            if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) then 
-              qMerge(:,i,j) = rinfinity ! to make sure we dont use it
+            ! next line commented out since it seems you have to fix inflow cuts
+            ! with multistep RK, or if not then adjust do loop indices
+            !if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) then 
+            if (OUT_OF_RANGE(i,j)) then 
+              !qMerge(:,i,j) = rinfinity ! to make sure we dont use it
+              qMerge(:,i,j) = q(:,i,j) ! to make sure we dont use it
               go to 10 
             endif
             if (k.eq.lstgrd) then ! full cell is its own nhood
@@ -93,42 +96,40 @@ c       form qMerge vals
               qMerge(:,i,j) = q(:,i,j)  ! cut cell is large enough
               go to 10
             endif
-c
-c           this routine currently assumes only one cell needed for
-c           merging to make sufficiently large cell, saved in svi,svj
-c
-            ioff = svi(k)
-            joff = svj(k)           
-            koff = irr(i+ioff,j+joff)
 
-            ! add the one other nbor cell and yourself to
-            ! get merged val. volmerge should have same weighting
-            qMerge(:,i,j) = (ar(k)*q(:,i,j)/numHoods(i,j) +
-     .            ar(koff)*q(:,i+ioff,j+joff)/numHoods(i+ioff,j+joff))/
-     .            volMerge(k)
+            ! my ncount doesn't include cell itself so initialize qMerge to it, not 0
+            qMerge(:,i,j) = ar(k)*q(:,i,j)/numHoods(i,j)
+            do ic = 1, ncount(k)
+               icurr = iidx(ic,k)
+               jcurr = jidx(ic,k)
+               koff = irr(icurr,jcurr)
+               qMerge(:,i,j) = qMerge(:,i,j) + ar(koff)*
+     &                         q(:,icurr,jcurr)/numHoods(icurr,jcurr)
+            end do
+            qMerge(:,i,j) = qMerge(:,i,j) / volMerge(k)
+
  10     continue
+ 11     continue
 
         ! gradient of merging neighborhoods, initialized to 0. set using neighboring tiles
-        if (igradChoice .eq. 0.d0) then
-           gradmx = 0.d0  ! so can use same code below with gradients
-           gradmy = 0.d0
-           go to 35   ! ssw = 0 means no slopes
-        else
-           gradmx = rinfinity   ! 0.d0 for debugging to make sure set
-           gradmy = rinfinity   ! 0.d0
-        endif
+        ! local variables so ok to zero out
+        gradmx = 0.d0 
+        gradmy = 0.d0
+        gradmxx = 0.d0
+        gradmxy = 0.d0
+        gradmyy = 0.d0
 
         ! compute stable neighborhood (mioff,mjoff) for gradients on merging tiles
-        call makeMergeNHood(irr,lwidth,mitot,mjtot,lstgrd,dx,dy,
+        call makeMergeGradHood(irr,lwidth,mitot,mjtot,lstgrd,dx,dy,
      &                      xlow,ylow,mptr,mioff,mjoff)
         if (igradChoice .eq. 3) then
            call qmslopes(irr,mitot,mjtot,lwidth,dx,dy,xlow,ylow,lstgrd,
-     &                numHoods,ncount,areaMin,
-     &                mioff,mjoff,qMerge,nvar,gradmx,gradmy)
+     &                numHoods,mioff,mjoff,qMerge,nvar,
+     &                gradmx,gradmy,gradmxx,gradmxy,gradmyy)
         else if (igradChoice .eq. 1 .or. igradChoice .eq. 2) then
           call mnslopes(irr,mitot,mjtot,lwidth,dx,dy,xlow,ylow,lstgrd,
-     &                numHoods,ncount,areaMin,
-     &                mioff,mjoff,qMerge,nvar,gradmx,gradmy)
+     &                numHoods,mioff,mjoff,
+     &                qMerge,nvar,gradmx,gradmy)
         endif
 c
 c      apply limiter if requested. Go over all neighbors, do BJ
@@ -149,7 +150,7 @@ c         limit all of grid all at once
         else
            call limitTileGradientLP(qmerge,gradmx,gradmy,
      &                           xlow,ylow,dx,dy,irr,lwidth,
-     &                           nvar,mitot,mjtot,lstgrd,areaMin,mptr,
+     &                           nvar,mitot,mjtot,lstgrd,mptr,
      &                           lpChoice,mioff,mjoff,
      &                           nborList,nborCount)
        endif
@@ -161,23 +162,17 @@ c
       ! instead of getting FROm cells. have to do it this way because a cell doesn't 
       ! know which cells contribute TO it, only the giving cell knows.
 
- 35   continue
 
       valnew = 0.d0  !  all cells initialized to 0
 
-c     next loop indices are assuming maxnco <= 2, so
-c     dont bother looking at ghost cells further away
-c     these ghost cells will be set next stage.
 c     need to look at some ghost cells because they may distribute
 c     to the last real cell
-      do 50 j = lwidth-1, mjtot-lwidth+2
-      do 50 i = lwidth-1, mitot-lwidth+2
-      !do 50 j = lwidth, mjtot-lwidth
-      !do 50 i = lwidth, mitot-lwidth
+      do 51 j = 1, mjtot
+      do 50 i = 1, mitot
           k = irr(i,j)
           if (k .eq. -1) then
              ! set valnew to 'robust' fake state
-             valnew(:,i,j) = fakeState
+             valnew(:,i,j) = fakeStateCons
              go to 50  ! does not contribute
           endif
           if (k .eq. lstgrd .or. ar(k) .gt. areaMin) then
@@ -186,39 +181,79 @@ c     to the last real cell
           endif
           call getCellCentroid(lstgrd,i,j,xc,yc,
      &                         xlow,ylow,dx,dy,k)
-          if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) then
+          !if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) then
+          if (OUT_OF_RANGE(i,j)) then
              valnew(:,i,j) = qMerge(:,i,j)  ! copy what came in  
              go to 50 
           endif
 
-             ioff = svi(k)
-             joff = svj(k)
-             ! cell i,j gives its tile to the offset cell as well as itself
-             qm(:) = qMerge(:,i,j) + 
-     .               (xc-xcentMerge(k))*gradmx(:,i,j) +
-     .               (yc-ycentMerge(k))*gradmy(:,i,j)
-             pr = .4d0*(qm(4)- 0.5d0*(qm(2)**2+qm(3)**2)/qm(1))
-             if (qm(1) .le. 0.d0 .or. pr .le. 0.d0) then
-                 qm(:) = qMerge(:,i,j)  ! is this conservative
+          ! have a cut cell to fix
+          do ic = 0, ncount(k)   ! check if should be +1,  AG/and I differ
+             if (ic .eq. 0) then
+               ioff = i
+               joff = j
+               koff = k
+             else
+               ioff = iidx(ic,k)
+               joff = jidx(ic,k)
+               koff = irr(ioff,joff)
              endif
 
-             valnew(:,i,j) = valnew(:,i,j) + qm(:)/numHoods(i,j)
+             qm = 0.d0  
+             if (koff .eq. lstgrd) then
+               arr = dx*dy
+               call makep(poly(1,1,lstgrd),ioff,joff,xlow,ylow,dx,dy)
+               ntris = 2
+             else
+               arr = ar(koff)
+               ivert = 1
+               do while (poly(ivert+1,1,koff).ne.-11)
+                  ivert = ivert + 1
+               end do
+               ntris = ivert - 3
+             endif
 
-c            now contribute to neighboring cell
-             koff = irr(i+ioff,j+joff)
-             call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,
-     &                           xlow,ylow,dx,dy,koff)
-             qm(:) = qMerge(:,i,j) + 
-     .               (xcn-xcentMerge(k))*gradmx(:,i,j) +
-     .               (ycn-ycentMerge(k))*gradmy(:,i,j)
-c            pr = .4d0*(qm(4)- 0.5d0*(qm(2)**2+qm(3)**2)/qm(1))
-c            if (qm(1) .le. 0.d0 .or. pr .le. 0.d0) then
-c               qm(:) = qMerge(:,i,j) ! is this conservative
-c            endif
-             valnew(:,i+ioff,j+joff) = valnew(:,i+ioff,j+joff) +
-     .                                 qm(:)/numHoods(i+ioff,j+joff)
+             indx1 = 1
+             x1 = poly(indx1,1,koff)
+             y1 = poly(indx1,2,koff)
+             do it = 1, ntris
+               indx2 = it + 1
+               indx3 = it + 2
+
+               x2 = poly(indx2,1,koff)
+               y2 = poly(indx2,2,koff)
+
+               x3 = poly(indx3,1,koff)
+               y3 = poly(indx3,2,koff)
+
+               artri = triangle_area(x1,x2,x3,y1,y2,y3)
+
+               do itq = 1, ntriquad
+                  xval = x1*rtri(itq) + x2*stri(itq) +
+     &                   x3*(1.d0-rtri(itq)-stri(itq))
+                  yval = y1*rtri(itq) + y2*stri(itq) +
+     &                   y3*(1.d0-rtri(itq)-stri(itq))
+
+                  diffx = xval - xcentMerge(k)
+                  diffy = yval - ycentMerge(k)
+
+                  qm = qm + (artri/arr)*wtri(itq)*(qMerge(:,i,j) +
+     &             diffx * gradmx(:,k) +
+     &             diffy * gradmy(:,k) +
+     &           0.5d0*gradmxx(:,k)*(diffx**2 - (dx**2)*qmshifts(1,k)) +
+     &              gradmxy(:,k)*(diffx*diffy - dx*dy*qmshifts(2,k)) +
+     &           0.5d0*gradmyy(:,k)*(diffy**2 - (dy**2)*qmshifts(3,k)))
+
+               end do ! loop over num terms in quadrature rule 
+             end do ! loop over ntris per polyhedra
+
+             valnew(:,ioff,joff) = valnew(:,ioff,joff) + 
+     &                             qm(:)/numHoods(ioff,joff)
+
+          end do
 
  50    continue
+ 51    continue
 c
        q = valnew
 c
@@ -230,178 +265,10 @@ c      check positivity
        return
        end
 c
-c ----------------------------------------------------------------------------
-c
-      subroutine makeNHood(ncount,irr,
-     .                     numHoods,mitot,mjtot,lwidth,lstgrd,xlow,ylow,
-     .                     dx,dy,istage,mptr,
-     .                     areaMin)
-
-      use amr_module
-      implicit double precision (a-h, o-z)
-
-      dimension numHoods(mitot,mjtot)
-      dimension ncount(mitot,mjtot), irr(mitot,mjtot)
-      logical  IS_OUTSIDE, firstTimeThru
-      logical debug/.false./
-      logical works/.true./
-      character ch
-
-
-      IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                   y .lt. ylower .or. y .gt. yupper)
-
-      ! merge until vqmerge at least this big (analogous to 1d where 
-      ! left and right nhoods each dx
-
-      numHoods = 1  ! initialize, everyone at least a member of its own hood
-      ncount = 0    ! and its nborhood only includes itself to start
-      maxnco = 0    ! will keep track of max
-
-c     this code below counts on fact that don't need more than
-c     2 cells to a side for a merging neighborhood
-      do 10 j = lwidth/2, mjtot-lwidth/2
-      do 10 i = lwidth/2, mitot-lwidth/2
-      !do 10 j = lwidth+1, mjtot-lwidth
-      !do 10 i = lwidth+1, mitot-lwidth
-         k = irr(i,j)  
-         if (k .eq. -1) go to 10
-         call getCellCentroid(lstgrd,i,j,xc,yc,
-     &                         xlow,ylow,dx,dy,k)
-         if (IS_OUTSIDE(xc,yc)) then
-            if (k .ne. lstgrd) then ! set centroid for later testing but shouldnt be using
-              xcentMerge(k) = xc
-              ycentMerge(k) = yc
-              go to 10  
-            endif
-         endif
-         svi(k) = 0
-         svj(k) = 0
-         if (k .eq. lstgrd) then
-            go to 10 ! a full  flow cell doesnt have to merge with a nbor 
-         endif
-         if (ar(k) .gt. areaMin) then
-           ! nothing needs to be merged 
-           go to 10
-         endif
-         vqmerge = ar(k)
-         firstTimeThru = .true.
-         nco = 1   ! initial size of neighborhood, from -1 to 1 square centered on cell
-         ! next lines are for unstable corner that havent figured out
-         ! yet in channel problem upper right corner
-         !if (i.ge.47 .and. j.ge. 44) then
-         !   areaMin = 2.d0*ar(lstgrd)
-         !else
-         !   areaMin = 0.5d0*ar(lstgrd)  
-         !endif
-
-         ! set ioff,joff to neighbor cell in most normal direction
-         ! to cut cell boundary
-         call getAdjCell(i,j,k,ioff,joff,
-     &                   mitot,mjtot,dx,dy)
-                  
-         koff = irr(i+ioff,j+joff)
-         call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,
-     &                        xlow,ylow,dx,dy,koff)
-                  
-         vqmerge = vqmerge + ar(koff)
-         if (firstTimeThru) then ! count everybody
-              numHoods(i+ioff,j+joff)=numHoods(i+ioff,j+joff)+1
-              svi(k) = ioff   ! save indices of merging nhood cell
-              svj(k) = joff   ! assuming only one here 
-              if (IS_OUTSIDE(xcn,ycn)) then
-                 write(*,*)"do need to fix this"
-                 stop
-              endif
-         endif
- 
-        if (vqmerge >= areaMin) then
-           ncount(i,j) = 1  ! this subroutine wont work if need > 1
-           maxnco = max(maxnco,nco)
-           go to 10
-        else   ! redo with larger neighborhood
-           write(*,909)i,j,ioff,joff,vqmerge,areaMin
- 909       format("cell ",2i4," not large enough w/ nhbor",2i4,
-     .            " vqmerge ",e15.7," areamin r", e15.7)
-           works = .false.
-        endif
-            
- 10   continue
-      if (.not. works) then
-         write(*,*)"Stopping calculation"
-         stop
-      endif
-
-c
-
-!   initialize array with  most common case, overwritten below as needed
-
-      do 20 j = lwidth/2, mjtot-lwidth/2
-      do 20 i = lwidth/2, mitot-lwidth/2
-         k = irr(i,j)  
-         if (k .eq. lstgrd) go to 20 ! flow cell is its own merged nhood
-         if (k .eq. -1) go to 20 ! solid cell is its own merged nhood
-             ! flow or large cut cell is its own merged nhood
-         call getCellCentroid(lstgrd,i,j,xc,
-     .                        yc,xlow,ylow,dx,dy,k)
-         if (IS_OUTSIDE(xc,yc)) go to 20
-
-         ! initialize, note it is diff variable than above, weighted by numhoods
-         ! small cut cell - compute merging vol and centroids
-         vmerge = ar(k)/numHoods(i,j)
-         xcent = ar(k)*xc/numHoods(i,j)   ! initial centroid
-         ycent = ar(k)*yc/numHoods(i,j)
-
-         if (ar(k).lt. areaMin) then  ! add second cell vol and centroid info
-            ioff = svi(k)  ! add one more centroid, assuming max of one more only
-            joff = svj(k)
-            koff = irr(i+ioff,j+joff)
-         
-            call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,xlow,ylow,
-     .                           dx,dy,koff)
-            vmerge = vmerge + ar(koff)/numHoods(i+ioff,j+joff)
-            xcent = xcent + xcn*ar(koff)/numHoods(i+ioff,j+joff)
-            ycent = ycent + ycn*ar(koff)/numHoods(i+ioff,j+joff)
-         endif
-
-         ! save info 
-         volMerge(k) = vmerge
-         xcentMerge(k) = xcent/vmerge
-         ycentMerge(k) = ycent/vmerge
-             
- 20   continue
-
-      if (debug) then
-        volMerge(lstgrd) = dx*dy
-        xcentMerge(lstgrd) = 0.d0
-        ycentMerge(lstgrd) = 0.d0
-        write(*,*)"makeNhood "
-        do j = 1, mjtot
-        do i = 1, mitot
-            k = irr(i,j)
-            if (k .eq. -1) then
-               ch = "*"
-               write(*,888)ch,i,j
-            else if (k .eq. lstgrd) then
-               ch = " "
-               write(*,888)ch,i,j
-            else
-               ch = "+"
-               write(*,888)ch,i,j,ncount(i,j),numHoods(i,j),
-     &                   xcentMerge(k),ycentMerge(k),volMerge(k)
- 888        format(A1,4i4,3e15.7)
-            endif
-        end do
-        end do
-      endif
-
-      return
-      end
-c
 c ----------------------------------------------------------------------
 c
-        subroutine  makeMergeNHood(irr,lwidth,mitot,mjtot,lstgrd,dx,dy,
-     &                             xlow,ylow,mptr,mioff,mjoff)
+        subroutine  makeMergeGradHood(irr,lwidth,mitot,mjtot,lstgrd,
+     &                                dx,dy,xlow,ylow,mptr,mioff,mjoff)
 
         use amr_module
         implicit double precision (a-h,o-z)

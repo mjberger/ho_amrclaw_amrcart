@@ -1,9 +1,6 @@
       subroutine qmslopes(irr,mitot,mjtot,lwidth,dx,dy,xlow,ylow,
-     . lstgrd, numHoods, ncount,areaMin,
-     & mioff, mjoff,
-     . qMerge, 
-     . nvar,
-     . qmx,qmy)
+     &                     lstgrd, numHoods,  mioff, mjoff,
+     &                     qMerge, nvar, qmx,qmy,qmxx,qmxy,qmyy)
 
 ! !   INPUTS:
 ! !   REQUIRED GRID DATA
@@ -11,7 +8,7 @@
 ! !   irr,mitot,mjtot,lwidth,hx,hy,xlow,ylow,lstgrd
 ! !
 ! !   REQUIRED MERGING DATA
-! !   volMerge, xcmerge, ycmerge, numHoods,
+! !   volMerge, xcentMerge, ycentMerge, numHoods, ncount
 ! !
 ! !   mioff, mjoff: RECONSTRUCTION NEIGHBORHOODS ON MERGING NEIGHS
 ! !
@@ -25,16 +22,15 @@
 
       use amr_module
       implicit double precision (a-h, o-z)
+      include "quadrature.i"
+      include "cuserdt.i"
 
       dimension irr(mitot,mjtot), numHoods(mitot,mjtot)
-      dimension rtri(3), stri(3), wtri(3)
-      dimension rquad(4), squad(4), wquad(4)
 
       dimension qMerge(nvar,mitot,mjtot)
-      dimension qmx(nvar,mitot,mjtot), qmy(nvar,mitot,mjtot)
-
-      !dimension mi(irrsize,10),mj(irrsize,10)
-      dimension ncount(mitot,mjtot)
+      dimension qmx(nvar,irrsize), qmy(nvar,irrsize)
+      dimension qmxx(nvar,irrsize), qmyy(nvar,irrsize)
+      dimension qmxy(nvar,irrsize)
 
       dimension a(9,9), rhs(9,nvar), b(9), f(9), w(9,nvar),G(9,9)
 
@@ -49,39 +45,14 @@
        OUT_OF_RANGE(i,j) = (i .lt. 1 .or. i .gt. mitot .or.
      .                      j .lt. 1 .or. j .gt. mjtot)
 
-      ! QUADRATURE RULE ON TRIANGLES
-      ! This quadrature rule integrates quadratics exactly
-      rtri = (/ 1.d0/6.d0, 2.d0/3.d0,1.d0/6.d0 /)
-      stri = (/ 1.d0/6.d0, 1.d0/6.d0,2.d0/3.d0 /)
-      wtri = (/ 1.d0/3.d0, 1.d0/3.d0,1.d0/3.d0 /)
-      ntriquad = 3
+      areaMin = areaFrac*dx*dy
 
-      ! QUADRATURE RULE ON CARTESIAN CELLS
-      ! This quadrature rule integrates cubics exactly
-      rquad = (/-dsqrt(1.d0/3.d0),  dsqrt(1.d0/3.d0),
-     .           dsqrt(1.d0/3.d0), -dsqrt(1.d0/3.d0)/)
-      squad = (/ -dsqrt(1.d0/3.d0), -dsqrt(1.d0/3.d0),
-     .            dsqrt(1.d0/3.d0),  dsqrt(1.d0/3.d0) /)
-      wquad = (/ 1.d0/4.d0, 1.d0/4.d0, 1.d0/4.d0, 1.d0/4.d0 /)
-      nquadquad = 4
+      ist = 2
+      jst = 2
+      iend = mitot-1
+      jend = mjtot-1
 
-
-      qmx = 0.d0
-      qmy = 0.d0
-
-      !jst = max(2,lwidth/2)
-      !jend = min(mjtot-1,mjtot-lwidth/2)
-      !ist = max(2,lwidth/2)
-      !iend = min(mitot-1,mitot-lwidth/2)
-      ! this only works if the first "real" cells only needs info
-      ! from no more than 2 away. Otherwise need to make larger num ghost cell
-      ! need to add a test
-      ist = lwidth
-      jst = lwidth
-      iend = mitot-lwidth+1
-      jend = mjtot-lwidth+1
-
-        do 820 j = jst, jend
+        do 821 j = jst, jend
         do 820 i = ist, iend
              k = irr(i,j)
              if (k .eq. -1 .or. k .eq. lstgrd) cycle
@@ -105,7 +76,7 @@
      &                                xlow,ylow,dx,dy,koff)
                  if (IS_OUTSIDE(xcn,ycn)) go to 834
 
-                 if(koff .eq. lstgrd) then
+                 if (koff .eq. lstgrd) then
                      xcoff = xlow + (i+ioff-0.5d0)*dx
                      ycoff = ylow + (j+joff-0.5d0)*dy
                      deltax = xcoff - x0
@@ -118,76 +89,59 @@
                  f(1) = deltax/dx
                  f(2) = deltay/dy
 
-                 f(3) = -qmshifts(1,k)
+                 f(3) = -qmshifts(1,k) !AG calls them dmergeshifts
                  f(4) = -qmshifts(2,k)
                  f(5) = -qmshifts(3,k)
 
                  if (koff .eq. lstgrd) then ! set up data on whole cell
-                    ! AG orig
-                    !nc(koff)  = 1
-                    !mi(koff, 1) = i+ioff
-                    !mj(koff, 1) = j+joff
-                    !volMerge(koff) = dx * dy / numHoods(i+ioff, j+joff)
                     cvm = dx * dy / numHoods(i+ioff, j+joff)
                  else
                     cvm = volMerge(koff) ! off vol merge
                  endif
 
-
+                 if (koff.eq. lstgrd .and. ncount(koff) .ne. 0) then
+                   write(*,*)"found problem"
+                   stop
+                 endif
                  ! compute weighted inner product of monomials on this neighborhood
-                 do 897 ic = 1, ncount(i+ioff,j+joff)+1 
-                    ! AG orig code
-                    !icurr = mi(koff,ic)
-                    !jcurr = mj(koff,ic)
-                    if (ic .eq. 1) then !nhood is itself
+                 do 897 ic = 0, ncount(koff) 
+                    if (ic .eq. 0) then !nhood is itself
                        icurr = i+ioff
                        jcurr = j+joff
                        kcurr = irr(icurr,jcurr)
-                    else if (ic .eq. 2) then  !nbor had its own nhood
-                       kcurr = irr(i+ioff,j+joff)
-                       icurr = i+ioff + svi(kcurr)
-                       jcurr = j+joff + svj(kcurr)
+                    else ! nbor had its own nhood
+                       icurr = iidx(ic,koff)
+                       jcurr = jidx(ic,koff)
                        kcurr = irr(icurr,jcurr)
-                    else
-                       write(*,*)"shouldnt have ic = ",i3," in qmslopes"
                     endif
 
                     nhc = numHoods(icurr, jcurr) ! num hoods current
                     if (kcurr .eq. lstgrd) then
                       itri = 2
-                      poly(1,1,kcurr) = xlow + (dfloat(icurr)-1.d0)*dx
-                      poly(1,2,kcurr) = ylow + (dfloat(jcurr)-1.d0)*dy
-
-                      poly(2,1,kcurr) = xlow + (dfloat(icurr)-0.d0)*dx
-                      poly(2,2,kcurr) = ylow + (dfloat(jcurr)-1.d0)*dy
-
-                      poly(3,1,kcurr) = xlow + (dfloat(icurr)-0.d0)*dx
-                      poly(3,2,kcurr) = ylow + (dfloat(jcurr)-0.d0)*dy
-
-                      poly(4,1,kcurr) = xlow + (dfloat(icurr)-1.d0)*dx
-                      poly(4,2,kcurr) = ylow + (dfloat(jcurr)-0.d0)*dy
+                      call makep(poly(1,1,lstgrd),icurr,jcurr,xlow,ylow,
+     &                           dx,dy)
                     else
-                     ivert = 1
+                      ivert = 1
                       do 890 while (poly(ivert+1,1,kcurr) .ne. -11.)
                         ivert = ivert + 1
   890                   continue
-                       itri = ivert - 3
+                      itri = ivert - 3
                     endif
 
       ! computing the inner product on each triangle of neighborhood member
-                  idx1 = 1
+                  indx1 = 1
                   do 891 it = 1, itri ! for each  triangle
-                    idx2 = it + 1
-                    idx3 = it + 2
+                    indx2 = it + 1
+                    indx3 = it + 2
 
-                    x1 = poly(idx1,1,kcurr)
-                    y1 = poly(idx1,2,kcurr)
+                    x1 = poly(indx1,1,kcurr)
+                    y1 = poly(indx1,2,kcurr)
 
-                    x2 = poly(idx2,1,kcurr)
-                    y2 = poly(idx2,2,kcurr)
+                    x2 = poly(indx2,1,kcurr)
+                    y2 = poly(indx2,2,kcurr)
 
-                    x3 = poly(idx3,1,kcurr)
-                    y3 = poly(idx3,2,kcurr)
+                    x3 = poly(indx3,1,kcurr)
+                    y3 = poly(indx3,2,kcurr)
 
                     artri = triangle_area(x1, x2, x3, y1, y2, y3)
 
@@ -230,14 +184,15 @@
             call cholesky(9, 5, a, G)
             do mm = 1, nvar
                call solve(9,5,G,rhs(:,mm))
-               qmy(mm,i,j)  =  rhs(2,mm)/dy
-               qmx(mm,i,j)  =  rhs(1,mm)/dx
+               qmyy(mm,k)  =  2.d0*rhs(5,mm)/dy**2  ! not sure about 0.5
+               qmxy(mm,k)  =  rhs(4,mm)/(dx*dy)
+               qmxx(mm,k)  =  2.d0*rhs(3,mm)/dx**2  ! not sure about 0.5
+               qmy(mm,k)  =  rhs(2,mm)/dy
+               qmx(mm,k)  =  rhs(1,mm)/dx
             end do
-c           write(*,*)i,j,qmx(1,i,j),0.d0,qmy(1,i,j),2.*y0
-c           write(*,900)i,j,qmx(1,i,j),qmy(1,i,j)
- 900        format(2i4,4e15.7)
 
- 820    continue ! iterate over merging tiles on entire grid
+ 820    continue 
+ 821    continue ! iterate over merging tiles on entire grid
 
       return
       end

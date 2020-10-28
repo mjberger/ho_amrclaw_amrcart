@@ -29,10 +29,11 @@ c
       corny = rnode(cornylo,mptr) -  nghost*hy
       time = rnode(timemult,mptr)
 
+      !!** for now put out conserved vars, not prim
       ! need ghost cells to avoid zero divides but wont be used
-      istage = 1
-      call bound(time,nvar,nghost,val,mitot,mjtot,mptr,aux,naux,istage)
-      call vctoprm(val,primval,mitot,mjtot,nvar)
+      !istage = 1
+      !call bound(time,nvar,nghost,val,mitot,mjtot,mptr,aux,naux,istage)
+      !call vctoprm(val,primval,mitot,mjtot,nvar)
 c
       do 20 i=nghost+1,mitot-nghost
       write(outunit,*)
@@ -42,11 +43,13 @@ c
           x  = cornx + hx*(dble(i)-.5d0)
           y  = corny + hy*(dble(j)-.5d0)
           if (irr(i,j) .eq. lstgrd) then
-          write(outunit,107) x,y,i,j,(primval(ivar,i,j),ivar=1,nvar)
+          !write(outunit,107) x,y,i,j,(primval(ivar,i,j),ivar=1,nvar)
+          write(outunit,107) x,y,i,j,(val(ivar,i,j),ivar=1,nvar)
  107      format(1x,2hx=,f7.3,3h y=,f7.3,4h, i=,i4,4h, j=,i4,' a=',
      *           4(e10.4,1x))
           else
-             write(outunit,108) x,y,i,j,(primval(ivar,i,j),ivar=1,nvar)
+             !write(outunit,108) x,y,i,j,(primval(ivar,i,j),ivar=1,nvar)
+             write(outunit,108) x,y,i,j,(val(ivar,i,j),ivar=1,nvar)
  108         format('*',2hx=,f7.3,3h y=,f7.3,4h, i=,i4,4h, j=,i4,' a=',
      *              4(e10.4,1x))
           endif

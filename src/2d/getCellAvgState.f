@@ -2,7 +2,7 @@ c
 c
 c     =====================================================
        subroutine getCellAvgState(meqn,xlow,ylow,
-     &                   dx,dy,qij,lstgrd,kirr,i,j)
+     &                   dx,dy,qij,lstgrd,kirr,i,j,time)
 c     =====================================================
 c
 c     # Set initial conditions for q.
@@ -34,14 +34,14 @@ c
        ivert = 3  ! first tri uses verts 1,2,3
        ntriquad = 3 ! num quadrature pts in each triangle 
        qij = 0.d0
-       do while (poly(ivert,1,kirr) .ne. -11)
+       do while (poly(ivert+1,1,kirr) .ne. -11)
          call setVerts(poly(1,1,kirr),artri,x1,y1,x2,y2,x3,y3,ivert)
          do itq = 1, ntriquad
             xval = x1 * rtri(itq) + x2 * stri(itq)
      &           +  x3 * (1.d0-rtri(itq)-stri(itq))
             yval = y1 * rtri(itq) + y2 * stri(itq)
      &           +  y3 * (1.d0-rtri(itq)-stri(itq))
-            call channelInit(xval,yval,state)
+            call channelInit(xval,yval,state,time)
             qij(:) = qij(:) + (artri/arr)*wtri(itq) * state(:)
          end do
          ivert = ivert + 1  ! next tri is verts 1 3 4

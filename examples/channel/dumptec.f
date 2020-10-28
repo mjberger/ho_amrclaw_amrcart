@@ -65,19 +65,19 @@ c     fill ghost cells if need them for output or to compute gradients
               hy   = hyposs(level)
 
              !!if (ssw .ne. 0 .and. .not. pwconst)
+               !  1 = stage means do external bcs too, not just internal boundaries
                call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,
-     2                    mptr,alloc(locaux),naux)
+     &                    mptr,alloc(locaux),naux,1,
+     &                    alloc(locirr),lstgrd)
 
               ! remember got 3 times size of irr to include other arrays
               locirr = node(permstore,mptr)
-              locncount = locirr + mitot*mjtot
-              locnumHoods = locncount + mitot*mjtot
+              locnumHoods = locirr + mitot*mjtot
 
               call outtec(alloc(locnew),nvar,mptr,
      1                    alloc(locirr),mitot,mjtot,
      2                    lstgrd,hx,hy,xlow,ylow,time,
-     3                    alloc(locncount),alloc(locnumHoods),
-     4                    ibunit)
+     3                    alloc(locnumHoods),ibunit)
 c
               mptr = node(levelptr,mptr)
           go to 20

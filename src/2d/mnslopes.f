@@ -2,17 +2,16 @@ c
 c ---------------------------------------------------------------------
 c
        subroutine mnslopes(irr,mitot,mjtot,lwidth,dx,dy,xlow,ylow,
-     &                    lstgrd,numHoods,ncount,areaMin,mioff,mjoff,
-     &                    qMerge,nvar,qmx,qmy)
+     &                    lstgrd,numHoods,mioff,mjoff,
+     &                    qMerge,nvar,gradmx,gradmy)
 
        use amr_module
        implicit double precision (a-h, o-z)
        include "cuserdt.i"
 
        dimension irr(mitot,mjtot)
-       dimension qmx(nvar,mitot,mjtot), qmy(nvar,mitot,mjtot)
+       dimension gradmx(nvar,irrsize), gradmy(nvar,irrsize)
        dimension qMerge(nvar,mitot,mjtot), numHoods(mitot,mjtot)
-       dimension nCount(mitot,mjtot)
        dimension mioff(mitot,mjtot),mjoff(mitot,mjtot)
 
        dimension a(5,5),b(5),rhs(5,nvar)
@@ -29,6 +28,8 @@ c
        OUT_OF_RANGE(i,j) = (i .lt. 1 .or. i .gt. mitot .or.
      .                      j .lt. 1 .or. j .gt. mjtot)
 
+
+        areaMin = areaFrac*dx*dy
 
         do 20 j = lwidth, mjtot-lwidth+1
         do 20 i = lwidth, mitot-lwidth+1
@@ -111,8 +112,8 @@ c
                   do m = 1, nvar
                     b(1) = rhs(1,m) / c11
                     b(2) = (rhs(2,m) - c12*b(1))/c22
-                    qmy(m,i,j) = b(2) / c22
-                    qmx(m,i,j) = (b(1) - c12*qmy(m,i,j))/c11
+                    gradmy(m,k) = b(2) / c22
+                    gradmx(m,k) = (b(1) - c12*gradmy(m,k))/c11
                   end do
                else
                  write(*,*)"found c22=0 for cell ",i,j
@@ -156,8 +157,8 @@ c
                 w2 = (b(2)-c25*w5-c24*w4-c23*w3)/c22
                 w1 = (b(1)-c15*w5-c14*w4-c13*w3-c12*w2)/c11
 
-                qmy(m,i,j) = w2
-                qmx(m,i,j) = w1
+                gradmy(m,k) = w2
+                gradmx(m,k) = w1
              end do
 
              endif

@@ -2,7 +2,7 @@ c
 c
 c     =====================================================
        subroutine qinit(meqn,mbc,mx,my,xcorn,ycorn,
-     &                   dx,dy,q,maux,aux,lstgrd,irr)
+     &                   dx,dy,q,maux,aux,lstgrd,irr,time)
 c     =====================================================
 c
 c     # Set initial conditions for q.
@@ -29,8 +29,8 @@ c      time stepping starts
 
           kirr = irr(i,j)
           ! account for difference in declaration from 1..mitot or 1-mbc..mx
-          call getCellAvgState(meqn,xlow,ylow,
-     &                         dx,dy,q(:,i,j),lstgrd,kirr,i+mbc,j+mbc)
+          call getCellAvgState(meqn,xlow,ylow,dx,dy,
+     &                         q(:,i,j),lstgrd,kirr,i+mbc,j+mbc,time)
 
   20   continue
   21   continue

@@ -59,18 +59,19 @@ c     fill ghost cells if need them for output or to compute gradients
               hy   = hyposs(level)
 
              !!if (ssw .ne. 0 .and. .not. pwconst)
+               istage = 1  ! means to call external boundary conditions
                call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,
-     2                    mptr,alloc(locaux),naux)
+     &                    mptr,alloc(locaux),naux,istage,
+     &                    alloc(locirr),lstgrd)
 
               ! remember got 3 times size of irr to include other arrays
               locirr = node(permstore,mptr)
-              locncount = locirr + mitot*mjtot
-              locnumHoods = locncount + mitot*mjtot
+              locnumHoods = locirr + mitot*mjtot
 
               call outtec(alloc(locnew),nvar,mptr,
      1                    alloc(locirr),mitot,mjtot,
      2                    lstgrd,hx,hy,xlow,ylow,time,
-     3                    alloc(locncount),alloc(locnumHoods),
+     3                    alloc(locnumHoods),
      4                    ibunit)
 c
               mptr = node(levelptr,mptr)
