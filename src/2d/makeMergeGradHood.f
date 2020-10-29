@@ -41,8 +41,6 @@ c
         mioff = initVal
         mjoff = initVal
 
-        !do j = lwidth+1, mjtot-lwidth
-        !do i = lwidth+1, mitot-lwidth
         do j = 1, mjtot
         do i = 1, mitot
            k = irr(i,j)
@@ -66,8 +64,8 @@ c
                    xm = xcentMerge(koff)
                    ym = ycentMerge(koff)
                 endif
-                if (IS_OUTSIDE(xm,ym) .or.
-     &              NOT_OK_GHOST(i+ioff,j+joff)) cycle
+!               if (IS_OUTSIDE(xm,ym) .or.
+!    &              NOT_OK_GHOST(i+ioff,j+joff)) cycle
                 diffx = max(diffx, dabs(xm-xcentMerge(k)))
                 diffy = max(diffy, dabs(ym-ycentMerge(k)))
              end do

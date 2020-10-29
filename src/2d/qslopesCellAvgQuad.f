@@ -245,26 +245,38 @@ c
 c
  120  if (prflag) then
          write(21,*)' qx '
-         do 180 i = 2, mitot-1
-         do 180 j = 2, mjtot-1
-            if (irr(i,j) .ne. -1) then
-               write(21,190)i,j,(qx(m,i,j),m=1,nvar)
- 190           format('  i,j  ',2i4,4e14.6)
-            endif
- 180     continue
+         call prDeriv(qx,irr,mitot,mjtot,nvar)
          write(21,*)' qy '
-         do 181 i = 2, mitot-1
-         do 181 j = 2, mjtot-1
-            if (irr(i,j) .ne. -1) then
-               write(21,190)i,j,(qy(m,i,j),m=1,nvar)
-            endif
- 181     continue
+         call prDeriv(qy,irr,mitot,mjtot,nvar)
+         write(21,*)' qxx'
+         call prDeriv(qxx,irr,mitot,mjtot,nvar)
+         write(21,*)' qxy'
+         call prDeriv(qxy,irr,mitot,mjtot,nvar)
+         write(21,*)' qyy'
+         call prDeriv(qyy,irr,mitot,mjtot,nvar)
 
       endif
 c
  99   return
       end
 
+c
+c ----------------------------------------------------------
+c
+      subroutine prDeriv(qd,irr,mitot,mjtot,nvar)
+
+      implicit real*8 (a-h, o-z)
+      dimension qd(nvar,mitot,mjtot), irr(mitot,mjtot)
+
+      do j = 1, mjtot
+      do i = 1, mitot
+         k = irr(i,j)
+         write(21,900) i,j,k,(qd(mm,i,j),mm=1,nvar)
+ 900     format(3i5,4e15.7)
+      end do
+      end do
+      return
+      end
 c
 c ----------------------------------------------------------
 c

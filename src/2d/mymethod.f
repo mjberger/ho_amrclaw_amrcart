@@ -80,6 +80,7 @@ c
 c
 c     # initializations
       firreg(:,-1)  = 0.d0
+      firreg(:,lstgrd)  = 0.d0
       f = 0.d0
       g = 0.d0
       qx = 0.d0
@@ -253,6 +254,7 @@ c      # finite volume update
 c
          c      = coeff(istage)
          ar(-1) = 1.d0   ! prevent zero divides for solid cells
+         ar(lstgrd) =  dx*dy  
          do 918 j = 2, mjtot-1
          do 917 i = 2, mitot-1
 

@@ -36,8 +36,8 @@
 
       dimension mioff(mitot,mjtot), mjoff(mitot,mjtot)
 
-       logical IS_OUTSIDE
-       logical OUT_OF_RANGE
+      logical IS_OUTSIDE, OUT_OF_RANGE
+      logical  debug
 
        IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
      .                    y .lt. ylower .or. y .gt. yupper)
@@ -46,6 +46,7 @@
      .                      j .lt. 1 .or. j .gt. mjtot)
 
       areaMin = areaFrac*dx*dy
+      debug = .true.
 
       ist = 2
       jst = 2
