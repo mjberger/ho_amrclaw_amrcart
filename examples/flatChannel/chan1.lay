@@ -271,7 +271,8 @@ $!GlobalContour  1
     Show = Yes
     XYPos
       {
-      X = 95
+      X = 99.324
+      Y = 99.04
       }
     }
   ColorCutoff
@@ -283,19 +284,19 @@ $!GlobalContour  1
     ColorMapDistribution = Continuous
     ContinuousColor
       {
-      CMin = 0.969328431603
-      CMax = 1.5908834547
+      CMin = 0.155560522084
+      CMax = 0.777114289526
       }
     }
 $!ContourLevels New
   ContourGroup = 1
   RawData
 5
-0.969328431603
-1.12471718738
-1.28010594315
-1.43549469893
-1.5908834547
+0.155560522084
+0.310948963944
+0.466337405805
+0.621725847665
+0.777114289526
 $!GlobalContour  2
   Var = 6
   ColorMapName = 'Sequential - Viridis'
@@ -657,15 +658,15 @@ $!TwoDAxis
 $!TwoDAxis 
   XDetail
     {
-    RangeMin = -0.19327279840584341009
-    RangeMax = 1.2488087463647494779
+    RangeMin = -0.032200480410453091729
+    RangeMax = 1.0358370406250412277
     GRSpacing = 0.2
     }
 $!TwoDAxis 
   YDetail
     {
-    RangeMin = -0.14024249923418777297
-    RangeMax = 1.1757904364379385687
+    RangeMin = 0.070722774806242727497
+    RangeMax = 1.0454059051141901815
     GRSpacing = 0.1
     }
 $!IsoSurfaceAttributes  1

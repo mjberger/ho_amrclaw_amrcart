@@ -272,19 +272,19 @@ $!GlobalContour  1
     ColorMapDistribution = Continuous
     ContinuousColor
       {
-      CMin = -13514.0784225
-      CMax = -2703.21568449
+      CMin = -0.0241552362953
+      CMax = -0.0047621190766
       }
     }
 $!ContourLevels New
   ContourGroup = 1
   RawData
 5
--13514.0784225
--10811.362738
--8108.64705347
--5405.93136898
--2703.21568449
+-0.0241552362953
+-0.0193069569906
+-0.0144586776859
+-0.00961039838128
+-0.0047621190766
 $!GlobalContour  2
   Var = 6
   ColorMapName = 'Sequential - Viridis'

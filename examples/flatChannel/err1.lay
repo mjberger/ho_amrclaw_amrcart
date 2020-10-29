@@ -1,6 +1,8 @@
 #!MC 1410
 $!VarSet |LFDSFN1| = '"disjointErrPlanes01.dat"'
 $!VarSet |LFDSVL1| = '"x" "y" "ErrRho" "ErrU" "ErrV" "ErrPressure" "Xcent" "Ycent" "ncount" "numHoods" "i" "j" "k" "volFrac" "mptr"'
+$!VarSet |LFDSFN2| = '"channel.dat"'
+$!VarSet |LFDSVL2| = '"x" "y" "ErrRho" "ErrU" "ErrV" "ErrPressure" "Xcent" "Ycent" "ncount" "numHoods" "i" "j" "k" "volFrac" "mptr"'
 $!SetStyleBase Factory
 $!CreateColorMap 
   Name = 'Sequential - Viridis'
@@ -226,6 +228,17 @@ $!ReadDataSet  '|LFDSFN1|'
   VarNameList = '|LFDSVL1|'
 $!RemoveVar |LFDSVL1|
 $!RemoveVar |LFDSFN1|
+$!ReadDataSet  '|LFDSFN2|'
+  InitialPlotType = Cartesian2D
+  IncludeText = No
+  IncludeGeom = No
+  ReadDataOption = Append
+  ResetStyle = No
+  AssignStrandIDs = Yes
+  VarLoadMode = ByName
+  VarNameList = '|LFDSVL2|'
+$!RemoveVar |LFDSVL2|
+$!RemoveVar |LFDSFN2|
 $!FrameLayout 
   ShowHeader = No
   HeaderColor = Red
@@ -243,7 +256,7 @@ $!PlotType  = Cartesian2D
 $!FrameName  = 'Frame 001'
 $!GlobalTime 
   SolutionTime = 0
-$!ActiveFieldMaps  =  [1]
+$!ActiveFieldMaps  =  [1-3]
 $!GlobalRGB 
   RedChannelVar = 3
   GreenChannelVar = 3
@@ -271,19 +284,19 @@ $!GlobalContour  1
     ColorMapDistribution = Continuous
     ContinuousColor
       {
-      CMin = 1.17253256625
-      CMax = 3.74822183811
+      CMin = -2.5829430649E-06
+      CMax = 1.41309610748E-06
       }
     }
 $!ContourLevels New
   ContourGroup = 1
   RawData
 5
-1.17253256625
-1.81645488422
-2.46037720218
-3.10429952014
-3.74822183811
+-2.5829430649E-06
+-1.5839332718E-06
+-5.84923478708E-07
+4.14086314386E-07
+1.41309610748E-06
 $!GlobalContour  2
   Var = 6
   ColorMapName = 'Sequential - Viridis'
@@ -575,6 +588,61 @@ $!FieldMap  [1]
     {
     LightingEffect = Gouraud
     }
+$!FieldMap  [2-3]
+  Mesh
+    {
+    Color = Black
+    LineThickness = 0.4
+    }
+  Contour
+    {
+    ContourType = Flood
+    Color = Black
+    UseLightingEffect = Yes
+    }
+  Vector
+    {
+    Color = Black
+    }
+  Scatter
+    {
+    Color = Black
+    }
+  Shade
+    {
+    Color = Custom2
+    }
+  EdgeLayer
+    {
+    Show = No
+    Color = Black
+    LineThickness = 0.1
+    }
+  Points
+    {
+    PointsToPlot = SurfaceNodes
+    }
+  Surfaces
+    {
+    SurfacesToPlot = KPlanes
+    IRange
+      {
+      Max = 1
+      }
+    }
+  VolumeMode
+    {
+    VolumeObjectsToPlot
+      {
+      ShowIsosurfaces = No
+      ShowSlices = No
+      ShowStreamtraces = No
+      }
+    }
+  Effects
+    {
+    LightingEffect = Gouraud
+    }
 $!TwoDAxis 
   XDetail
     {
@@ -590,15 +658,15 @@ $!TwoDAxis
 $!TwoDAxis 
   XDetail
     {
-    RangeMin = -0.02771475031762814234
-    RangeMax = 1.0226151226076658496
+    RangeMin = -0.040776200955302571716
+    RangeMax = 0.92816061401624594396
     GRSpacing = 0.2
     }
 $!TwoDAxis 
   YDetail
     {
-    RangeMin = 0.024661503526791236918
-    RangeMax = 0.98318476533713350385
+    RangeMin = 0.050842898740780517741
+    RangeMax = 0.93508745877407517533
     GRSpacing = 0.1
     }
 $!IsoSurfaceAttributes  1
