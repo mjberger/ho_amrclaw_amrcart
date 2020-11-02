@@ -27,7 +27,8 @@ OVERWRITE ?= True                   # False ==> make a copy of OUTDIR first
 # Compiler flags can be specified here or set as an environment variable
 #FC = ifort
 FC = gfortran-8
-#FFLAGS ?= -g 
+#FC = ifort
+#FFLAGS ?= -O -C -CB -CU -fpe0 -ftrapuv 
 #FFLAGS ?= -O2 -C -CB -CU -fpe0 -ftrapuv -qopenmp  -mcmodel=large
 FFLAGS ?= -g -fbounds-check -gno-strict-dwarf  -ffpe-trap=invalid,overflow,zero 
 
@@ -62,18 +63,14 @@ SOURCES = \
   fbody.f \
   bc2amr.f90 \
   channelInit.f \
-  $(AMRLIB)/vrmc_vl.f \
-  $(AMRLIB)/mymethod.f \
-  $(AMRLIB)/SRD_cellMerge.f \
   $(AMRLIB)/fixed_vector_lim_allineq.f \
   $(AMRLIB)/fixed2_Simplex_allineq.f \
+  $(AMRLIB)/vrmc_llf.f \
+  $(AMRLIB)/mymethod.f \
+  $(AMRLIB)/SRD_cellMerge.f \
   outtec.f \
   dumptec.f \
-  irregFlux.f \
 
-#  $(AMRLIB)/vrmc_llf.f \
-#  $(AMRLIB)/SRD_normalWithGhostQuadratic.f \
-#  $(AMRLIB)/SRD_quadratic.f \
 #  $(AMRLIB)/lp_qslopesWithGhostAvgQuadratic.f \
 #  $(AMRLIB)/lp_qslopesPtQuad2.f \
 #  $(AMRLIB)/SRD_normal2.f \

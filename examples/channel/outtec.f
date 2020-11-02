@@ -231,6 +231,7 @@ c -----------------------------------------------------------
 c
       logical function checkIfAllSolid(irr,mitot,mjtot,nghost)
 
+      implicit real*8 (a-h, o-z)
       dimension irr(mitot,mjtot)
 
       checkIfAllSolid = .true.

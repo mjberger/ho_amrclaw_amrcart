@@ -56,7 +56,6 @@ c     on flow cells. will add unlimited cut gradients
 
       nTerms = 5 ! for quadratic through cell avg
       quad = .false.
-      nco = 1
 
       do 110 iy0 = 1, mjtot
       do 110 ix0 = 1, mitot
@@ -70,6 +69,11 @@ c     on flow cells. will add unlimited cut gradients
             go to 110
          endif
 
+         if (k .eq. lstgrd) then
+            nco = 1
+         else
+            nco = 2
+         endif
          if (all_nbors_exist(ix0,iy0,nco,irr,lstgrd,mitot,mjtot)) cycle
 c     
          if (ar(k)/ar(lstgrd) .lt. gradThreshold) then
@@ -106,12 +110,12 @@ c      # this cell needs derivatives
                yn = ylow + (iyn-.5d0)*hy
             endif
             ! test for trusted ghost cells, depending on stage
-            if (IS_GHOST(ixn,iyn)) then
-               ! internal ghost cells have good vals from others grids
-               if (OUTSIDE(xn,yn)) then
-                   if (.not. TRUSTED(ixn,iyn)) cycle
-               endif
-            endif
+!           if (IS_GHOST(ixn,iyn)) then
+!              ! internal ghost cells have good vals from others grids
+!              if (OUTSIDE(xn,yn)) then
+!                  if (.not. TRUSTED(ixn,iyn)) cycle
+!              endif
+!           endif
 
             irow = irow + 1
 

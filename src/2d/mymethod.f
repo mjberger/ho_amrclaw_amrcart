@@ -108,7 +108,7 @@ c
        !! q comes in as conserved variables. Computes slopes 
        call qslopes(q,qx,qy,qxx,qxy,qyy,
      &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
-     &                 xlow,ylow,mptr,nvar,istage,iir,jjr,istage)
+     &                 xlow,ylow,mptr,nvar,iir,jjr,istage)
 
        !! now convert to pointwise primitive values
        !! for first test reconstruct in conserved vars`
