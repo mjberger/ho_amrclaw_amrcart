@@ -2,8 +2,7 @@ c
 c -------------------------------------------------------------------
 c
       subroutine makeFVReconHood(irr,mitot,mjtot,lwidth,lstgrd,dx,dy,
-     &                           reconTOLx,reconTOLy,xlow,ylow,
-     &                           iir,jjr)
+     &                           xlow,ylow,iir,jjr)
 
       use amr_module
 
@@ -20,20 +19,18 @@ c
      .                  j .eq. 1 .or. j .eq.  mjtot)
 
 
-      reconTOLx_cc = 1.5d0*dx  ! for cut cells
-      reconTOLy_cc = 1.5d0*dy
-      reconTOLx_nb = 0.5d0*dx  ! for reg neighbors
-      reconTOLy_nb = 0.5d0*dy
+      reconTOLx = 1.5d0*dx  ! for cut cells
+      reconTOLy = 1.5d0*dy
 
       iir = 1
       jjr = 1
 
-!      set up for quadratic slopes o 5 by 5 neighborhood for cut cells
+!      set up for quadratic slopes on 5 by 5 neighborhood for cut cells
 !      and 3 by 3 neighborhood for neighbor of cut cells.  Check for
 !      stability and enlarge nhood as needed.
 
-      do j = 2, mjtot-1   ! does first/last cell need a gradient?
-      do i = 2, mitot-1
+      do j = 1, mjtot   ! does first/last cell need a gradient?
+      do i = 1, mitot
          k = irr(i,j)
          if (k .eq. -1) cycle ! solid so do nothing
          if ((k .eq. lstgrd) .and. 
@@ -61,6 +58,7 @@ c
             do 31 joff = -jjr(i,j), jjr(i,j)
             do 30 ioff = -iir(i,j), iir(i,j)
 
+                if (ioff .eq. 0 .and. joff .eq. 0) go to 30
                 if (.not. IS_REAL(i+ioff,j+joff)) go to 30
                 koff = irr(i+ioff, j+joff)
                 if (koff .eq. -1) goto 30
@@ -78,25 +76,14 @@ c
 30          continue
 31          continue
 
-           if (koff .eq. lstgrd) then  ! use adjacent full cell tolerance
-              if(diffx < reconTOLx_nb) then
+              if(diffx < reconTOLx) then
                  iir(i,j) = iir(i,j) + 1
                  icont = 1
               endif
-              if(diffy < reconTOLy_nb) then
+              if(diffy < reconTOLy) then
                  jjr(i,j) = jjr(i,j) + 1
                  icont = 1
               endif
-           else  ! use cut cell tolerance
-              if(diffx < reconTOLx_cc) then
-                 iir(i,j) = iir(i,j) + 1
-                 icont = 1
-              endif
-              if(diffy < reconTOLy_cc) then
-                 jjr(i,j) = jjr(i,j) + 1
-                 icont = 1
-              endif
-           endif
 
          end do  ! end while loop
 
@@ -111,6 +98,10 @@ c
       logical function is_reg(irr,mitot,mjtot,i,j,lstgrd,nhoodSize)
 
       integer irr(mitot,mjtot)
+      logical IS_REAL
+
+      IS_REAL(i,j) = (i > 0 .and. i < mitot+1 .and.
+     .                j > 0 .and. j < mjtot+1)
       
       ! nhoodSize is total size, so divide by 2 (and truncate) to get halfwidth
       nhsize = nhoodSize/2
@@ -118,6 +109,10 @@ c
 
       do joff = -nhsize, nhsize
       do ioff = -nhsize, nhsize
+         if (.not. IS_REAL(i+ioff,j+joff)) then
+            is_reg = .false.
+            return
+         endif
          if (irr(i+ioff,j+joff) .ne. lstgrd) then
             is_reg = .false.
             return

@@ -73,11 +73,14 @@ c     fill ghost cells if need them for output or to compute gradients
               ! remember got 3 times size of irr to include other arrays
               locirr = node(permstore,mptr)
               locnumHoods = locirr + mitot*mjtot
+              locreconx = locnumHoods + mitot*mjtot
+              locrecony = locreconx + mitot*mjtot
 
               call outtec(alloc(locnew),nvar,mptr,
      1                    alloc(locirr),mitot,mjtot,
      2                    lstgrd,hx,hy,xlow,ylow,time,
-     3                    alloc(locnumHoods),ibunit)
+     3                    alloc(locnumHoods),ibunit,
+     4                    alloc(locreconx),alloc(locrecony))
 c
               mptr = node(levelptr,mptr)
           go to 20

@@ -26,7 +26,8 @@ OVERWRITE ?= True                   # False ==> make a copy of OUTDIR first
 
 # Compiler flags can be specified here or set as an environment variable
 FC = gfortran-8
-#FFLAGS ?= -g -C -CB -CU -fpe0 -ftrapuv 
+#FC = ifort
+#FFLAGS ?= -O -C -CB -CU -fpe0 -ftrapuv 
 #FFLAGS ?= -O2 -C -CB -CU -fpe0 -ftrapuv -qopenmp  -mcmodel=large
 FFLAGS ?= -g -fbounds-check -gno-strict-dwarf  -ffpe-trap=invalid,overflow,zero 
 

@@ -3,7 +3,7 @@ c -------------------------------------------------------------
 c
       subroutine outtec(q,nvar,mptr,irr,mitot,mjtot,
      1                  lstgrd,dx,dy,xlow,ylow,time,
-     2                  numHoods,ibunit)
+     2                  numHoods,ibunit,iir,jjr)
 c
       use amr_module
       implicit double precision (a-h,o-z)
@@ -12,8 +12,8 @@ c
       dimension state(nvar)
       ! use temporary array for qp to avoid converting back
       dimension qp(nvar,mitot,mjtot)  
-      integer numHoods(mitot,mjtot) 
-      integer irr(mitot,mjtot) 
+      integer numHoods(mitot,mjtot), irr(mitot,mjtot) 
+      integer iir(mitot,mjtot), jjr(mitot,mjtot) 
       dimension qx(nvar,mitot,mjtot),qy(nvar,mitot,mjtot)
       dimension qxx(nvar,mitot,mjtot),qyy(nvar,mitot,mjtot)
       dimension qxy(nvar,mitot,mjtot)
@@ -76,9 +76,9 @@ c     pwconst =  .false.
       if (pwconst) go to 9
 
       if (ssw .ne. 0.d0) then
-        istage = 0 ! signifies called from outtec NOT USED ATM
+        istage = 1 ! signifies to all exterior bcs
         call qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar)
+     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,iir,jjr,istage)
       endif
 
  9    continue
@@ -107,6 +107,13 @@ c     initialize for error computation
       volDenErrorL1   = 0.d0
       volExactDenL1   = 0.d0
       exactVol        = 0.d0
+      volDenErrorMax  = 0.d0
+
+      bndryDenErrorL1  = 0.d0
+      bndryDenExactL1 = 0.d0
+      bndryDenErrorMax = 0.d0
+      imax = -1
+      jmax = -1
 
 
 c  only output real rows and cols, no ghost cells 
@@ -180,6 +187,15 @@ c       add this point to error computation, get exact solution at bndry too
         volDenErrorL1 = volDenErrorL1 + ar(kirr)*abs(errprim(1))
         volExactDenL1 = volExactDenL1 + ar(kirr)*rhot
         exactVol =  exactVol + ar(kirr)
+        if (kirr .ne. lstgrd) then
+           bndryDenErrorL1 = bndryDenErrorL1 + bLength*abs(errprim(1))
+           bndryDenExactL1 = bndryDenExactL1 + bLength*abs(rhot)
+           if (abs(errprim(1)) .gt. bndryDenErrorMax) then
+              bndryDenErrorMax = abs(errprim(1))
+              imax = i
+              jmax = j
+           endif
+        endif
 
  15    continue
  16    continue
@@ -201,6 +217,12 @@ c output errors
      .       "L1 density exact soln   ", e15.7,/,
      .       "L1 Relative density error",e15.7,/,
      .       "Computed volume          ",e15.7,//)
+
+      write(outunit,601) bndryDenErrorL1,bndryDenExactL1,
+     &                   bndryDenErrorMax,imax,jmax
+ 601  format("L1 bndry density error ",e15.7,/,
+     &       "L1 bndry density exact ",e15.7,/,
+     &       "Max bndry density error ",e14.7,' at ',2i5)
 
       return
       end

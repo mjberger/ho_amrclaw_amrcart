@@ -3,7 +3,7 @@ c -------------------------------------------------------------
 c
       subroutine outtec(q,nvar,mptr,irr,mitot,mjtot,
      1                  lstgrd,dx,dy,xlow,ylow,time,
-     2                  numHoods,ibunit)
+     2                  numHoods,ibunit,iir,jjr)
 c
       use amr_module
       implicit double precision (a-h,o-z)
@@ -11,8 +11,8 @@ c
       dimension q(nvar,mitot,mjtot) 
       ! use temporary array for qp to avoid converting back
       dimension qp(nvar,mitot,mjtot)  
-      integer numHoods(mitot,mjtot) 
-      integer irr(mitot,mjtot) 
+      integer numHoods(mitot,mjtot), irr(mitot,mjtot) 
+      integer iir(mitot,mjtot), jjr(mitot,mjtot) 
       dimension qx(nvar,mitot,mjtot),qy(nvar,mitot,mjtot)
       dimension valprim(4)
       dimension exactsoln(1)
@@ -71,7 +71,7 @@ c     pwconst =  .false.
       if (ssw .ne. 0.d0) then
         istage = 0 ! signifies called from outtec
         call qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,istage)
+     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,istage,iir,jjr)
       endif
 
  9    continue

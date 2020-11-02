@@ -2,7 +2,8 @@ c
 c ---------------------------------------------------------------------
 c
        subroutine qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &                    lwidth,hx,hy,xlow,ylow,mptr,nvar) 
+     &                    lwidth,hx,hy,xlow,ylow,mptr,nvar,
+     &                    iir,jjr,istage) 
 
       use amr_module
 
@@ -13,6 +14,7 @@ c
      &          qy(nvar,mitot,mjtot),irr(mitot,mjtot)
       dimension qxx(nvar,mitot,mjtot), qyy(nvar,mitot,mjtot)
       dimension qxy(nvar,mitot,mjtot)
+      dimension iir(mitot,mjtot),jjr(mitot,mjtot)
 
       ! driver routine to call the correct gradient routine
 
@@ -33,8 +35,11 @@ c
          call qslopesPtQuad2(qp,qx,qy,mitot,mjtot,irr,lstgrd,lwidth,
      &                       hx,hy,xlow,ylow,mptr,nvar)
       else if (igradChoice .eq. 3) then
-         call qslopesCellAvgQuad(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
-     &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar)
+c        call qslopesCellAvgQuad(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+c    &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar)
+         call qslopesQuadWithIIR(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+     &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
+     &                       iir,jjr,istage)
       else if (igradChoice .eq. 0) then
          write(*,*)"should not be here  should have set ssw = 0"
       else

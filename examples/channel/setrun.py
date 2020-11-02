@@ -42,9 +42,9 @@ def setrun(claw_pkg='amrclaw'):
     probdata.add_param('ismp',    1,  ' stabilization method')
     ## 0 = none
     ## 1 = SRD
-    #probdata.add_param('pwconst', True,  ' no slopes in plotting ')
-    probdata.add_param('pwconst', False,  ' no slopes in plotting ')
-    probdata.add_param('max1d', 120,' max size each dir for grid patches')
+    probdata.add_param('pwconst', True,  ' no slopes in plotting ')
+    #probdata.add_param('pwconst', False,  ' no slopes in plotting ')
+    probdata.add_param('max1d', 740,' max size each dir for grid patches')
     probdata.add_param('nloops',     2,  '# closed loops or segments')
     probdata.add_param('xloop1',    0.,  ' starting pt x')
     probdata.add_param('yloop1',    .11, ' starting pt y')
@@ -86,11 +86,16 @@ def setrun(claw_pkg='amrclaw'):
     clawdata.upper[1] = 1.000000e+00          # yupper
 
     # Number of grid cells:
-    #clawdata.num_cells[0] = 44      # mx
-    clawdata.num_cells[0] = 43      # mx
-    clawdata.num_cells[1] = 44      # my
-    #clawdata.num_cells[0] = 12      # mx
-    #clawdata.num_cells[1] = 12      # my
+    #clawdata.num_cells[0] = 43      # mx
+    #clawdata.num_cells[1] = 44      # my
+    #clawdata.num_cells[0] = 86      # mx
+    #clawdata.num_cells[1] = 88      # my
+    #clawdata.num_cells[0] = 3*129     # mx
+    #clawdata.num_cells[1] = 3*132     # my
+    #clawdata.num_cells[0] = 344     # mx
+    #clawdata.num_cells[1] = 352     # my
+    clawdata.num_cells[0] = 516       # mx
+    clawdata.num_cells[1] = 528       # my
 
     # ---------------
     # Size of system:
@@ -129,13 +134,13 @@ def setrun(claw_pkg='amrclaw'):
     # Specify at what times the results should be written to fort.q files.
     # Note that the time integration stops after the final output time.
 
-    clawdata.output_style = 1
+    clawdata.output_style = 3
 
     if clawdata.output_style==1:
         # Output ntimes frames at equally spaced times up to tfinal:
         # Can specify num_output_times = 0 for no output
-        clawdata.num_output_times = 30
-        clawdata.tfinal = .3699
+        clawdata.num_output_times = 1
+        clawdata.tfinal = .50
         clawdata.output_t0 = True  # output at initial (or restart) time?
 
     elif clawdata.output_style == 2:
@@ -146,7 +151,7 @@ def setrun(claw_pkg='amrclaw'):
     elif clawdata.output_style == 3:
         # Output every step_interval timesteps over total_steps timesteps:
         clawdata.output_step_interval = 1
-        clawdata.total_steps = 3
+        clawdata.total_steps = 1
         clawdata.output_t0 = True  # output at initial (or restart) time?
         #clawdata.output_t0 = False  # output at initial (or restart) time?
 
@@ -272,7 +277,7 @@ def setrun(claw_pkg='amrclaw'):
     # Specify when checkpoint files should be created that can be
     # used to restart a computation.
 
-    clawdata.checkpt_style = 3
+    clawdata.checkpt_style = 1
 
     if clawdata.checkpt_style == 0:
         # Do not checkpoint at all

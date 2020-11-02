@@ -4,7 +4,7 @@ c
       subroutine mymethod(q,qold,mitot,mjtot,lwidth,
      &                  dtn,dtnewn,dx,dy,nvar,xlow,ylow,mptr,maux,
      &                  aux,irr,lstgrd,numHoods,vtime,
-     &                  istage,time,iir,jir)
+     &                  istage,time,iir,jjr)
 c
 c -----------------------------------------------------
 c  compute one stage of an RK method. What comes in and what you do will vary
@@ -27,7 +27,7 @@ c
       dimension ffluxlen(mitot+1,mjtot+1),gfluxlen(mitot+1,mjtot+1)
       dimension Uout(nvar)
       dimension xp(max1d),yp(max1d)
-      dimension iir(mitot,mjtot),jir(mitot,mjtot) 
+      dimension iir(mitot,mjtot),jjr(mitot,mjtot) 
 
       integer   irr(mitot,mjtot)
       integer   numHoods(mitot,mjtot)
@@ -108,7 +108,7 @@ c
        !! q comes in as conserved variables. Computes slopes 
        call qslopes(q,qx,qy,qxx,qxy,qyy,
      &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
-     &                 xlow,ylow,mptr,nvar,istage)
+     &                 xlow,ylow,mptr,nvar,istage,iir,jjr,istage)
 
        !! now convert to pointwise primitive values
        !! for first test reconstruct in conserved vars`

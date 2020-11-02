@@ -5,7 +5,6 @@ AMRLIB:=/Users/berger/ho_amrclaw_amrcart/src/2d
 
 #list of common sources for amr 2d codes
 COMMON_MODULES += \
-  $(CLAW)/classic/src/utility_module.f90 \
   $(AMRLIB)/amr_module.f90 \
   $(AMRLIB)/gauges_module.f90 \
   $(AMRLIB)/regions_module.f90 \
@@ -97,6 +96,7 @@ COMMON_SOURCES += \
   $(AMRLIB)/solve.f \
   $(AMRLIB)/reg_slopes.f \
   $(AMRLIB)/qslopes.f \
+  $(AMRLIB)/qslopesQuadWithIIR.f \
   $(AMRLIB)/qslopesCellAvgQuad.f \
   $(AMRLIB)/qslopesPtQuad2.f \
   $(AMRLIB)/qmslopes.f \
