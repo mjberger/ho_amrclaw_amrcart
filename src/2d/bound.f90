@@ -50,7 +50,7 @@
 !!
 subroutine bound(time,nvar,ng,valbig,mitot,mjtot,mptr,aux,naux,istage,irr,lstgrd)
 
-  use amr_module, only: rnode, node, hxposs, hyposs, cornxlo, cornxhi
+  use amr_module, only: rnode, node, hxposs, hyposs, possk,cornxlo, cornxhi
   use amr_module, only: cornylo, cornyhi, ndilo, ndihi, ndjlo, ndjhi
   use amr_module, only: nestlevel, xlower, xupper, ylower, yupper
   use amr_module, only: xperdom, yperdom, spheredom
@@ -66,9 +66,11 @@ subroutine bound(time,nvar,ng,valbig,mitot,mjtot,mptr,aux,naux,istage,irr,lstgrd
 
   ! Locals
   integer :: ilo, ihi, jlo, jhi, level  ! rect(4)
-  real(kind=8) :: xleft, xright, ybot, ytop, hx, hy, xl, xr, yb, yt
+  real(kind=8) :: xleft, xright, ybot, ytop, hx, hy, xl, xr, yb, yt, dt, stageTime
   real(kind=8) :: xloWithGhost,  xhiWithGhost,  yloWithGhost, yhiWithGhost
   logical      :: patchOnly
+
+  include "RKmethod.i"
 
   xleft  = rnode(cornxlo, mptr)
   xright = rnode(cornxhi, mptr)
@@ -153,12 +155,11 @@ subroutine bound(time,nvar,ng,valbig,mitot,mjtot,mptr,aux,naux,istage,irr,lstgrd
   ! set all exterior (physical)  boundary conditions for this grid at once
   ! used to be done from filpatch, but now only for recursive calls with new patch
   ! where the info matches. more efficient to do whole grid at once, and avoid copying
-  ! use fewer ghost cells at each stage, but setting external bcs not time accurate
-  ! istage 1 means to call exterior boundary conditions
-  ! dont call them at intermediate RK stages
-  if (istage .eq. 1) then  
-     call bc2amr(valbig,aux,mitot,mjtot,nvar,naux,hx,hy,level,time,    &
-                 xloWithGhost,xhiWithGHost,yloWithGhost,yhiWithGhost,irr,lstgrd)
+  dt = possk(level)
+  stageTime = time + timeFrac(istage) * dt
+  if (istage .eq. 1) then
+  call bc2amr(valbig,aux,mitot,mjtot,nvar,naux,hx,hy,level,stageTime,    &
+              xloWithGhost,xhiWithGHost,yloWithGhost,yhiWithGhost,irr,lstgrd)
   endif
 
 end subroutine bound

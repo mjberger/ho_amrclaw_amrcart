@@ -9,11 +9,9 @@ c
         include "cuserdt.i"
         dimension irr(mitot,mjtot)
         dimension mioff(mitot,mjtot),mjoff(mitot,mjtot)
-        logical NOT_OK_GHOST, OKstencil, IS_OUTSIDE, OUT_OF_RANGE
+        logical NOT_OK_GHOST, OKstencil, OUT_OF_RANGE
         logical debug/.false./
 
-        IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                     y .lt. ylower .or. y .gt. yupper)
 
         NOT_OK_GHOST(i,j) = (i .lt. 3 .or. 
      .                       i .gt. mitot-2 .or.
@@ -64,8 +62,6 @@ c
                    xm = xcentMerge(koff)
                    ym = ycentMerge(koff)
                 endif
-!               if (IS_OUTSIDE(xm,ym) .or.
-!    &              NOT_OK_GHOST(i+ioff,j+joff)) cycle
                 diffx = max(diffx, dabs(xm-xcentMerge(k)))
                 diffy = max(diffy, dabs(ym-ycentMerge(k)))
              end do

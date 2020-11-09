@@ -32,9 +32,9 @@ c
       integer   irr(mitot,mjtot)
       integer   numHoods(mitot,mjtot)
 
-      common   /RKmethod/ coeff(5),mstage
       common   /order2/ ssw,quad,nolimiter
       include "cuserdt.i"
+      include "RKmethod.i"
 
       logical   debug, vtime 
       logical   missing
@@ -89,9 +89,9 @@ c     # initializations
       qxy = 0.d0
       qyy = 0.d0
 
-      if (istage .eq. 3) then 
-         q = .75d0*qold + .25*q  ! q is q2, stage 2, done this way for srd  
-      endif
+c     if (istage .eq. 3) then 
+c        q = .75d0*qold + .25*q  ! q is q2, stage 2, done this way for srd  
+c     endif
 
 c need routine to set face lengths and  midpoints
          call getirrlen(irr,mitot,mjtot,dtn,dx,dy,lstgrd,
@@ -108,7 +108,7 @@ c
        !! q comes in as conserved variables. Computes slopes 
        call qslopes(q,qx,qy,qxx,qxy,qyy,
      &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
-     &                 xlow,ylow,mptr,nvar,iir,jjr,istage)
+     &                 xlow,ylow,mptr,nvar,iir,jjr)
 
        !! now convert to pointwise primitive values
        !! for first test reconstruct in conserved vars`
@@ -119,15 +119,15 @@ c
        !! now compute slopes in primitive vars 
 !       call qslopes(q,qx,qy,qxx,qxy,qyy,
 !     &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
-!     &                 xlow,ylow,mptr,nvar,istage)
+!     &                 xlow,ylow,mptr,nvar)
 
 
 c
 c  loop through rows of q calculating fluxes one row at time
 c  vertical riemann problem first
 c
-      !do 800 jcol = 1, mjtot-1 
-      do 800 jcol = 1+2*(istage-1), mjtot-1-2*(istage-1) 
+      do 800 jcol = 1, mjtot-1 
+      !do 800 jcol = 1+2*(istage-1), mjtot-1-2*(istage-1) 
 c
          ! would be better for cache  to have nn as inside loop 
          ! but then would need to have multiple vectors to save, call vrm, etc.
@@ -136,8 +136,8 @@ c
               ur(:,ii) = fakeStateCons(:) !initialize so ghost and missing vals still ok
               ul(:,ii) = fakeStateCons(:) 
             end do
-            !do 511 i = 1, mitot
-            do 511 i = 1+2*(istage-1), mitot-2*(istage-1)
+            do 511 i = 1, mitot
+            !do 511 i = 1+2*(istage-1), mitot-2*(istage-1)
                call getYface_gauss(i,jcol,xface,yface,irr,mitot,mjtot,
      &                             xlow,ylow,dx,dy,lstgrd,nn,missing)
                if (missing) cycle
@@ -179,12 +179,12 @@ c
 c
 c    Horizontal riemann problems next
 c
-      !do 900 irow = 1, mitot-1
-      do 900 irow = 1+2*(istage-1), mitot-1-2*(istage-1)
+      do 900 irow = 1, mitot-1
+      !do 900 irow = 1+2*(istage-1), mitot-1-2*(istage-1)
 c
         do 612  nn = 1, nlinequad
-          !do 611 j = 1, mjtot
-          do 611 j = 1+2*(istage-1), mjtot-2*(istage-1)
+          do 611 j = 1, mjtot
+          !do 611 j = 1+2*(istage-1), mjtot-2*(istage-1)
             call getXface_gauss(irow,j,xface,yface,irr,mitot,mjtot,
      .               xlow,ylow,dx,dy,lstgrd,nn,missing)
             if (missing) then
@@ -272,9 +272,13 @@ c
             q = q  + dU
          else if (istage .eq. 2) then  ! q1 came in, used in eval to make q2
             q = q  + dU
+            if (mstage .eq. 2) q = 0.5d0*(qold + q)  
+            if (mstage .eq. 3) q = .75d0*qold + .25d0*q  
          else if (istage .eq. 3) then ! form and return q3
-            ! done this way so SRD can be called on output q, then qfinal formed in advance
-            q = q + dU    ! remember that q_temp was renamed to q
+            ! done this way so SRD can be called on output q, then qfinal 
+            ! formed in advance
+            q = q + dU
+            q = (1.d0/3.d0)*qold + (2.d0/3.d0)*q
          endif
             
 

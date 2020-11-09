@@ -36,14 +36,28 @@ c
       ibunit = 24
       open(ibunit,file=filebndry,status='unknown',form='formatted')
       write(ibunit,*)"# writing bndry file at time ",time
-      write(ibunit,*)"#      x_bndry  y_bndry  rho    u     v     p",
-     &               "   i       j      mptr"
+      write(ibunit,*)"#  dist     x_bndry  y_bndry  rho    u     v  ",
+     &               "   p       i       j      mptr"
       
 
       nplot = nplot+1
 
  10   level = lfine
 
+c     initialize for error computation across all grids at this level
+      volDenErrorL1   = 0.d0
+      volExactDenL1   = 0.d0
+      exactVol        = 0.d0
+      volDenErrorMax  = 0.d0
+
+      bndryDenErrorL1  = 0.d0
+      bndryDenExactL1 = 0.d0
+      bndryDenErrorMax = 0.d0
+      imax = -1
+      jmax = -1
+
+
+      
 c     fill ghost cells if need them for output or to compute gradients
       mptr = lstart(level)
  20       if (mptr .eq. 0) go to 50
@@ -65,10 +79,12 @@ c     fill ghost cells if need them for output or to compute gradients
               hy   = hyposs(level)
 
              !!if (ssw .ne. 0 .and. .not. pwconst)
-               !  1 = stage means do external bcs too, not just internal boundaries
-               call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,
-     &                    mptr,alloc(locaux),naux,1,
-     &                    alloc(locirr),lstgrd)
+               ! 1 means to call external boundary conditions
+               ! 0 leaves values in ghost cells, easier to debug
+c              istage = 1  
+c              call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,
+c    &                    mptr,alloc(locaux),naux,istage,
+c    &                    alloc(locirr),lstgrd)
 
               ! remember got 3 times size of irr to include other arrays
               locirr = node(permstore,mptr)
@@ -79,8 +95,11 @@ c     fill ghost cells if need them for output or to compute gradients
               call outtec(alloc(locnew),nvar,mptr,
      1                    alloc(locirr),mitot,mjtot,
      2                    lstgrd,hx,hy,xlow,ylow,time,
-     3                    alloc(locnumHoods),ibunit,
-     4                    alloc(locreconx),alloc(locrecony))
+     3                    alloc(locnumHoods),
+     4                    ibunit,alloc(locreconx),alloc(locrecony),
+     5                    volDenErrorL1,volExactDenL1,exactVol,
+     6                    volDenErrorMax,bndryDenErorL1,bndryDenExactL1,
+     7                    bndryDenErrorMax,imax,jmax)
 c
               mptr = node(levelptr,mptr)
           go to 20
@@ -90,6 +109,24 @@ c
       close(14)
       close(24)
       write(*,*)"done writing ",filename," at time",time
+
+      
 c
+c  output errors
+      write(outunit,600) volDenErrorL1,volExactDenL1,
+     .     volDenErrorL1/volExactDenL1,exactVol
+      
+ 600  format("L1 density volume error ", e15.7,/,
+     .       "L1 density exact soln   ", e15.7,/,
+     .       "L1 Relative density error",e15.7,/,
+     .       "Computed volume          ",e15.7,//)
+
+      write(outunit,601) bndryDenErrorL1,bndryDenExactL1,
+     &                   bndryDenErrorMax,imax,jmax
+ 601  format("L1 bndry density error ",e15.7,/,
+     &       "L1 bndry density exact ",e15.7,/,
+     &     "Max bndry density error ",e14.7,' at ',2i5)
+      
+      
  99   return
       end

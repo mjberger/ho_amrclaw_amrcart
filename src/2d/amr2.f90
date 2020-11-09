@@ -134,17 +134,18 @@ program amr2
     ! Common block variables
     real(kind=8) :: dxmin, dymin
     real(kind=8) :: cflcart,gamma,gamma1,xprob,yprob,alpha
-    real(kind=8) :: Re,gradThreshold,coeff(5)
-    integer      :: iprob,ismp,mstage
+    real(kind=8) :: Re,gradThreshold
+    integer      :: iprob,ismp
 
     common /comfine/ dxmin,dymin
 
     common /order2/ ssw, quad, nolimiter
-    common /RKmethod/ coeff, mstage
 
+    ! this common block not replaced by "cuserdt.i" because its not f90 compatible
     common /userdt/ cflcart,gamma,gamma1,xprob,yprob,alpha,Re,iprob,   &
                     ismp,gradThreshold,pwconst,ghost_ccg,limitTile,lpChoice
 
+    include "RKmethod.i"
     include "quadrature.i"
 
     character(len=364) :: format_string

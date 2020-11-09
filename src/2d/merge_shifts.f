@@ -24,13 +24,8 @@
 
       dimension irr(mitot,mjtot), numHoods(mitot,mjtot)
 
-      logical IS_OUTSIDE
 
       include "quadrature.i"
-
-      IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                   y .lt. ylower .or. y .gt. yupper)
-
 
 
       ! recompute the shifts
@@ -40,8 +35,6 @@
 
 
          if (k .eq. -1 .or. k .eq. lstgrd) cycle ! skip solid and whole cells
-         call getCellCentroid(lstgrd,i,j,xc,yc,xlow,ylow,dx,dy,k)
-         if (IS_OUTSIDE(xc,yc)) cycle
 
           shiftmxx = 0.d0
           shiftmxy = 0.d0

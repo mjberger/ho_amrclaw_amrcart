@@ -173,8 +173,8 @@ c        changed code to directly do second order diff in one direction on full 
 
 c     # code preserving integral average
             else if (nToUse .eq. 5) then
-              shiftxx = poly( 8,1,k)
-              shiftxy = poly( 9,1,k)
+              shiftxx = poly(8, 1,k)
+              shiftxy = poly(9, 1,k)
               shiftyy = poly(10,1,k)
               a(irow,1:5) = 0.d0
 

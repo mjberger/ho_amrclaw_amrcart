@@ -3,7 +3,10 @@ c -------------------------------------------------------------
 c
       subroutine outtec(q,nvar,mptr,irr,mitot,mjtot,
      1                  lstgrd,dx,dy,xlow,ylow,time,
-     2                  numHoods,ibunit,iir,jjr)
+     2                  numHoods,ibunit,iir,jjr,
+     3                  volDenErrorL1,volExactDenL1,exactVol,
+     4                  volDenErrorMax,bndryDenErorL1,bndryDenExactL1,
+     5                  bndryDenErrorMax,imax,jmax)
 c
       use amr_module
       implicit double precision (a-h,o-z)
@@ -19,12 +22,16 @@ c
       dimension qxy(nvar,mitot,mjtot)
       dimension valprim(4), errprim(4)
       dimension exactsoln(1)
-      include "cuserdt.i"
       common /order2/ ssw, quad, nolimiter
       logical  quad, nolimiter
-      logical ghostOut
+      logical IS_GHOST
       logical isAllSolid,checkIfAllSolid
       character ch
+
+      include "cuserdt.i"
+
+      IS_GHOST(i,j) = (i .le. nghost .or. i .gt. mitot-nghost .or.
+     &                 j .le. nghost .or. j .gt. mjtot-nghost)
 c
 c     first count to see if any non solid cells on grid
 c     tecplot doesnt like zeroes
@@ -36,6 +43,7 @@ c     tecplot doesnt like zeroes
           write(*,*)"count off in outtec"
           stop
         else
+          write(*,*)" grid ",mptr, " is all solid cells"
           return
         endif
       endif
@@ -55,8 +63,6 @@ c
        qyy = 0.d0
 
 c  if want to output ghost cells too change this flag
-       !ghostOut = .false.
-       ghostOut = .true.
        if (ghostOut) then
           ist = 1
           iend = mitot
@@ -69,16 +75,12 @@ c  if want to output ghost cells too change this flag
           jend = mjtot-nghost
        endif
 
-
-c  set pwconst true for piecewise constant plots, set to false for slopes in tec output
-c     pwconst =  .true.
-c     pwconst =  .false.
-      if (pwconst) go to 9
+c    pwconst set in setrun.py. For debugging sometimes need slopes off
+      if (pwconst) go to 9 
 
       if (ssw .ne. 0.d0) then
-        istage = 1 ! signifies to all exterior bcs
         call qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,iir,jjr,istage)
+     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,iir,jjr)
       endif
 
  9    continue
@@ -87,41 +89,30 @@ c  count needed for unstructured tec format (so dont have to look up new format)
       nCellsinPlane = 0  
        do 11 i = ist,iend
        do 10 j = jst,jend
-         if (irr(i,j) .ne. -1) then
+!        if (irr(i,j) .ne. -1) then
             nCellsinPlane = nCellsinPlane+1
-         endif
+!        endif
  10   continue
  11   continue
 c
       write(14,103) 4*nCellsinPlane,nCellsinPlane
       write(13,1033) 4*nCellsinPlane,nCellsinPlane
  103  format('VARIABLES = x,y,Rho,U,V,Pressure,Xcent,Ycent,',
-     .                   'ncount,numHoods,i,j,k,volFrac,mptr',/,
+     .                   'ncount,numHoods,iir,jjr,i,j,k,volFrac,mptr',/,
      .          'Zone T="Cut",N =',i10,' E= ',i10,' F=FEPOINT')
 1033  format('VARIABLES = x,y,ErrRho,ErrU,ErrV,ErrPressure,Xcent,',
-     .                   'Ycent,ncount,numHoods,i,j,k,volFrac,mptr',/,
+     .                   'Ycent,ncount,numHoods,iir,jjr,i,j,k,',
+     .                    'volFrac,mptr',/,
      .          'Zone T="Cut",N =',i10,' E= ',i10,' F=FEPOINT')
 
 
-c     initialize for error computation
-      volDenErrorL1   = 0.d0
-      volExactDenL1   = 0.d0
-      exactVol        = 0.d0
-      volDenErrorMax  = 0.d0
 
-      bndryDenErrorL1  = 0.d0
-      bndryDenExactL1 = 0.d0
-      bndryDenErrorMax = 0.d0
-      imax = -1
-      jmax = -1
-
-
-c  only output real rows and cols, no ghost cells 
+c  only output real rows and cols, not solid cells
 c
       do 16 j = jst,jend
       do 15 i = ist, iend
          kirr = irr(i,j)
-         if (kirr .eq. -1) go to 15
+         !if (kirr .eq. -1) go to 15
 
 c        # test again for kirr -1 in case want to view in tecplot
          if (kirr .eq. lstgrd .or. kirr .eq. -1) then
@@ -166,9 +157,17 @@ c
      .                                   (yc-ycen)*qy(ivar,i,j)
          end do
 
-         write(14,102) xc,yc,(valprim(ivar),ivar=1,nvar),
-     &                 xcen,ycen,ncount(kirr),numHoods(i,j),i,j,
+         if (kirr .eq. -1) then
+         write(14,102) xc,yc,(qp(ivar,i,j),ivar=1,nvar),
+     &                 xcen,ycen,0,0,
+     &                 0,0,i,j,
      &                 kirr,volFrac,mptr
+         else
+         write(14,102) xc,yc,(valprim(ivar),ivar=1,nvar),
+     &                 xcen,ycen,ncount(kirr),numHoods(i,j),
+     &                 iir(i,j),jjr(i,j),i,j,
+     &                 kirr,volFrac,mptr
+         endif
          ! this computes and  outputs cell centered error for 2nd order scheme
          !call channelInit(xcen,ycen,state) 
          ! now does cell average
@@ -177,24 +176,35 @@ c
          !errprim(:) = qp(:,i,j) - state
          errprim(:) = q(:,i,j) - state ! altho for now in cons vars
          rhot = state(1)
+         if (kirr .eq. -1) then
          write(13,102) xc,yc,(errprim(ivar),ivar=1,nvar),
-     &                  xcen,ycen,ncount(kirr),numHoods(i,j),i,j,
+     &                  xcen,ycen,0,0,
+     &                  0,0,i,j,
+     &                  kirr,0.d0,mptr
+         else
+         write(13,102) xc,yc,(errprim(ivar),ivar=1,nvar),
+     &                  xcen,ycen,ncount(kirr),numHoods(i,j),
+     &                  iir(i,j),jjr(i,j),i,j,
      &                  kirr,volFrac,mptr
- 102    format(8e25.15,5i8,1e10.2,i5)
+        endif
+ 102    format(8e25.15,7i8,1e10.2,i5)
         end do
 
 c       add this point to error computation, get exact solution at bndry too
-        volDenErrorL1 = volDenErrorL1 + ar(kirr)*abs(errprim(1))
-        volExactDenL1 = volExactDenL1 + ar(kirr)*rhot
-        exactVol =  exactVol + ar(kirr)
-        if (kirr .ne. lstgrd) then
-           bndryDenErrorL1 = bndryDenErrorL1 + bLength*abs(errprim(1))
-           bndryDenExactL1 = bndryDenExactL1 + bLength*abs(rhot)
-           if (abs(errprim(1)) .gt. bndryDenErrorMax) then
-              bndryDenErrorMax = abs(errprim(1))
-              imax = i
-              jmax = j
-           endif
+c       only count error for non-ghost cells - even if plotting them
+        if (.not. IS_GHOST(i,j)) then
+          volDenErrorL1 = volDenErrorL1 + ar(kirr)*abs(errprim(1))
+          volExactDenL1 = volExactDenL1 + ar(kirr)*rhot
+          exactVol =  exactVol + ar(kirr)
+          if (kirr .ne. lstgrd) then
+             bndryDenErrorL1 = bndryDenErrorL1 + bLength*abs(errprim(1))
+             bndryDenExactL1 = bndryDenExactL1 + bLength*abs(rhot)
+             if (abs(errprim(1)) .gt. bndryDenErrorMax) then
+                bndryDenErrorMax = abs(errprim(1))
+                imax = i
+                jmax = j
+             endif
+          endif
         endif
 
  15    continue
@@ -209,20 +219,6 @@ c
  104      format(4i10)
           ico = ico + 4
        end do
-
-c output errors
-      write(outunit,600) volDenErrorL1,volExactDenL1,
-     .                   volDenErrorL1/volExactDenL1,exactVol
- 600  format("L1 density volume error ", e15.7,/,
-     .       "L1 density exact soln   ", e15.7,/,
-     .       "L1 Relative density error",e15.7,/,
-     .       "Computed volume          ",e15.7,//)
-
-      write(outunit,601) bndryDenErrorL1,bndryDenExactL1,
-     &                   bndryDenErrorMax,imax,jmax
- 601  format("L1 bndry density error ",e15.7,/,
-     &       "L1 bndry density exact ",e15.7,/,
-     &       "Max bndry density error ",e14.7,' at ',2i5)
 
       return
       end

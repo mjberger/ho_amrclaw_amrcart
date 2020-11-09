@@ -8,7 +8,6 @@ c
        implicit double precision (a-h, o-z)
        dimension val(nvar,mitot,mjtot), irr(mitot,mjtot)
        include "cuserdt.i"
-       common /RKmethod/ coeff(5),mstage
 
 c
 

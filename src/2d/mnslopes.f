@@ -18,12 +18,10 @@ c
        dimension nborList(35,2)
        character c2
 
-       logical IS_OUTSIDE, OUT_OF_RANGE
+       logical OUT_OF_RANGE
        logical quad, nolimiter,verbose
        common /order2/ ssw, quad, nolimiter
 
-       IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                    y .lt. ylower .or. y .gt. yupper)
 
        OUT_OF_RANGE(i,j) = (i .lt. 1 .or. i .gt. mitot .or.
      .                      j .lt. 1 .or. j .gt. mjtot)
@@ -37,7 +35,7 @@ c
             if (k .eq. -1 .or. k .eq. lstgrd) cycle 
             if (ar(k) .gt. areaMin) cycle  ! wont need gradient
             call getCellCentroid(lstgrd,i,j,xc,yc,xlow,ylow,dx,dy,k)
-            if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) cycle  
+            if (OUT_OF_RANGE(i,j)) cycle  
 
             nborCount = 0 ! if not enough cant use quad, drop to linear
 
@@ -57,7 +55,6 @@ c
                if (koff .eq. -1) go to 22
                call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,
      &                              xlow,ylow,dx,dy,koff)
-               if (IS_OUTSIDE(xcn,ycn)) go to 22
 
                nborCount = nborCount + 1
                nborList(nborCount,1) = i+ioff

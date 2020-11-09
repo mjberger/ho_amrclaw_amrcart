@@ -48,8 +48,8 @@ c
        qy = 0.d0
 
 c  if want to output ghost cells too change this flag
-       ghostOut = .false.
-       !ghostOut = .true.
+       !ghostOut = .false.
+       ghostOut = .true.
        if (ghostOut) then
           ist = 1
           iend = mitot
@@ -69,9 +69,8 @@ c     pwconst =  .false.
       if (pwconst) go to 9
 
       if (ssw .ne. 0.d0) then
-        istage = 0 ! signifies called from outtec
         call qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,istage,iir,jjr)
+     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,iir,jjr)
       endif
 
  9    continue

@@ -25,10 +25,12 @@ c
 
        !rho = 0.5d0
        !rho = y - 0.1d0*x + 0.5d0
-       rho = y**2  + 3.d0*x*y + 0.5*x + 1.d0
+       !rho = y 
+       !rho = x + 2.d0 
+       !rho = y**2  + 3.d0*x*y + 0.5*x + 1.d0
        !rho = y**2 + 0.5d0 
        !rho = y**3 + 2.d0*x*y + 0.5d0
-       !rho = sin(2.d0*pi*x) * cos(2.d0*pi*y) + 2.0d0
+       rho = sin(2.d0*pi*x) * cos(2.d0*pi*y) + 2.0d0
 
        state(1) = rho
        state(2) = rho*u

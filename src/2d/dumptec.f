@@ -59,7 +59,9 @@ c     fill ghost cells if need them for output or to compute gradients
               hy   = hyposs(level)
 
              !!if (ssw .ne. 0 .and. .not. pwconst)
-               istage = 1  ! means to call external boundary conditions
+               ! 1 means to call external boundary conditions
+               ! 0 leaves values in ghost cells, easier to debug
+               istage = 0  
                call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,
      &                    mptr,alloc(locaux),naux,istage,
      &                    alloc(locirr),lstgrd)

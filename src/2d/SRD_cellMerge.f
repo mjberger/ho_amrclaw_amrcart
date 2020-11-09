@@ -23,7 +23,6 @@ c
        dimension nborList(35,2)
        character c2
 
-       logical IS_OUTSIDE
        logical OUT_OF_RANGE
        logical quad, nolimiter
        common /order2/ ssw, quad, nolimiter
@@ -38,8 +37,6 @@ c NEW WAY - do one stage at a time then copy in ghost cells at intermediate
 c stages for neighboring grids.  
 c never use cells from exterior to the domain for SRD
 
-      IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                   y .lt. ylower .or. y .gt. yupper)
 
       OUT_OF_RANGE(i,j) = (i .lt. 1 .or. i .gt. mitot .or.
      &                     j .lt. 1 .or. j .gt. mjtot)
@@ -54,10 +51,18 @@ c   the setup for this is called from setirr, and is in routine makeMergeHood
 c ::::::::::::::::
 
 c
+
+       call countCellType(irr,mitot,mjtot,lwidth,numSolid,numCut,
+     &                    numFull,lstgrd)
+       nx = mitot - 2*lwidth 
+       ny = mjtot - 2*lwidth 
+       if (numSolid .eq. nx*ny) return
+
 c      some initializations
        ar(lstgrd) = dx*dy   ! area of regular grid cell 
        areaMin = areaFrac*dx*dy
        qMerge   = 0.d0
+         
 
        ! put in 'normal' values to prevent errors e.g. in converting to prim vars
        ! these fake vals are in conserved variables
@@ -68,7 +73,7 @@ c      some initializations
 
 c   merging nhoods make in makeMergeHood, called from setirr
 
-      if (igradChoice .eq. 3) then
+      if (igradChoice .eq. 3 .or. igradChoice .eq. 4) then
         call merge_shifts(irr,mitot,mjtot,lwidth,dx,dy,xlow,ylow,lstgrd,
      .                  numHoods)
       endif
@@ -79,10 +84,7 @@ c       form qMerge vals
         do 10 i = 1, mitot
             k = irr(i,j)
             if (k .eq. -1) go to 10 ! no solid cells
-            call getCellCentroid(lstgrd,i,j,xc,yc,xlow,ylow,dx,dy,k)
-            ! next line commented out since it seems you have to fix inflow cuts
             ! with multistep RK, or if not then adjust do loop indices
-            !if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) then 
             if (OUT_OF_RANGE(i,j)) then 
               !qMerge(:,i,j) = rinfinity ! to make sure we dont use it
               qMerge(:,i,j) = q(:,i,j) ! to make sure we dont use it
@@ -167,6 +169,7 @@ c
 
 c     need to look at some ghost cells because they may distribute
 c     to the last real cell
+c     dont use first and last cell since no good update in method
       do 51 j = 1, mjtot
       do 50 i = 1, mitot
           k = irr(i,j)
@@ -181,7 +184,6 @@ c     to the last real cell
           endif
           call getCellCentroid(lstgrd,i,j,xc,yc,
      &                         xlow,ylow,dx,dy,k)
-          !if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) then
           if (OUT_OF_RANGE(i,j)) then
              valnew(:,i,j) = qMerge(:,i,j)  ! copy what came in  
              go to 50 

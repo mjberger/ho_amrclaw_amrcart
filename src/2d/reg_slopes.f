@@ -2,7 +2,7 @@ c
 c------------------------------------------------------------
 c
        subroutine reg_slopes(q,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &                   lwidth,hx,hy,xlow,ylow,mptr,nvar,istage)
+     &                   lwidth,hx,hy,xlow,ylow,mptr,nvar)
 
        use amr_module
        implicit double precision(a-h,o-z)

@@ -5,9 +5,9 @@
       character(len=25) fname
 c
       logical nolimiter, quad
-      common /RKmethod/ coeff(5), mstage
       common /order2/ ssw, quad, nolimiter
       include "cuserdt.i"
+      include "RKmethod.i"
 c
       iunit = 7
       fname = 'setprob.data'
@@ -22,10 +22,17 @@ c     # comment lines starting with #:
       if (mstage .eq. 1) then
          coeff(1) = 1.d0
       else if (mstage .eq. 2) then
-         coeff(1) = 0.5d0
+         coeff(1) = 1.0d0
          coeff(2) = 1.0d0
+         timeFrac(1) = 0.d0
+         timeFrac(2) = 1.d0
+         timeFrac(3) = 1.d0
       else if (mstage .eq. 3) then
          coeff(1:3) = 1.0d0
+         timeFrac(1) = 0.0d0
+         timeFrac(2) = 1.0d0
+         timeFrac(3) = 0.5d0
+         timeFrac(4) = 1.0d0
       endif
 
 
@@ -95,6 +102,10 @@ c     # comment lines starting with #:
       read(7,*) areaFrac
       write(*,*)"merging cell volume fraction = ", areaFrac
       write(outunit,*)"merging cell volume fraction = ", areaFrac
+
+      read(7,*) ghostOut
+      write(*,*)"Plotting incude ghost cells with ghostOut  = ",ghostOut
+      write(outunit,*)"Plotting incude ghost cells with ghostOut  = ",ghostOut
 
       iprob = 19
       write(*,*)"Setprob is setting iprob = ",iprob

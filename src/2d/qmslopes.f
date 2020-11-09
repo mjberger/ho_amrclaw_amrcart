@@ -36,14 +36,15 @@
 
       dimension mioff(mitot,mjtot), mjoff(mitot,mjtot)
 
-      logical IS_OUTSIDE, OUT_OF_RANGE
+      logical OUT_OF_RANGE, NOT_TRUSTED
       logical  debug
 
-       IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                    y .lt. ylower .or. y .gt. yupper)
 
        OUT_OF_RANGE(i,j) = (i .lt. 1 .or. i .gt. mitot .or.
      .                      j .lt. 1 .or. j .gt. mjtot)
+
+       NOT_TRUSTED(i,j) = (i .eq. 1 .or. i .eq. mitot-1 .or.
+     .                     j .eq. 1 .or. j .eq. mjtot-1)
 
       areaMin = areaFrac*dx*dy
       debug = .true.
@@ -58,8 +59,6 @@
              k = irr(i,j)
              if (k .eq. -1 .or. k .eq. lstgrd) cycle
              if (ar(k) .gt. areaMin) cycle
-             call getCellCentroid(lstgrd,i,j,xc,yc,xlow,ylow,dx,dy,k)
-             if (IS_OUTSIDE(xc,yc) .or. OUT_OF_RANGE(i,j)) cycle
 
              rhs = 0.d0 ! initialize for accumulation
              a = 0.d0
@@ -71,11 +70,11 @@
             do 834 ioff = -mioff(i,j), mioff(i,j)
                  if (ioff .eq. 0 .and. joff .eq. 0) go to 834
                  if (OUT_OF_RANGE(i+ioff,j+joff)) go to 834
+                 ! cant use 1st and last cell in nhood since no
+                 ! good update from method
+                 if (NOT_TRUSTED(i+ioff,j+joff)) go to 834
                  koff = irr(i+ioff,j+joff)
                  if (koff .eq. -1) goto 834
-                 call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,
-     &                                xlow,ylow,dx,dy,koff)
-                 if (IS_OUTSIDE(xcn,ycn)) go to 834
 
                  if (koff .eq. lstgrd) then
                      xcoff = xlow + (i+ioff-0.5d0)*dx

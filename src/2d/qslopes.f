@@ -3,7 +3,7 @@ c ---------------------------------------------------------------------
 c
        subroutine qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
      &                    lwidth,hx,hy,xlow,ylow,mptr,nvar,
-     &                    iir,jjr,istage) 
+     &                    iir,jjr) 
 
       use amr_module
 
@@ -29,17 +29,19 @@ c
       !  1 = first order accurate gradients  (2 terms in least squares)
       !  2 = pointwise quadratic gradients (5 terms in least squares)
       !  3 = cellwise average  quadratic gradients (5 terms in least squares)
+      !  4 = cellwise average  quads using Andrews iir approach             
 
 
       if (igradChoice .eq. 1 .or. igradChoice .eq. 2) then
          call qslopesPtQuad2(qp,qx,qy,mitot,mjtot,irr,lstgrd,lwidth,
      &                       hx,hy,xlow,ylow,mptr,nvar)
       else if (igradChoice .eq. 3) then
-c        call qslopesCellAvgQuad(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
-c    &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar)
+         call qslopesCellAvgQuad(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+     &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar)
+      else if (igradChoice .eq. 4) then
          call qslopesQuadWithIIR(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
      &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
-     &                       iir,jjr,istage)
+     &                       iir,jjr)
       else if (igradChoice .eq. 0) then
          write(*,*)"should not be here  should have set ssw = 0"
       else

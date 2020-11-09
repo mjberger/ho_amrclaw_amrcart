@@ -11,8 +11,8 @@ c
 c
       use amr_module
       implicit double precision (a-h,o-z)
-      common /RKmethod/ coeff(5),mstage
       include "cuserdt.i"
+      include "RKmethod.i"
 
 
       logical    vtime
@@ -50,8 +50,6 @@ c  to avoid needing so many
 c
 c  mjb adapted May 18, 2020 to do SRD call after all grdis updated and new
 c ghost cell values copied in
-
-      dobcstage = 4   ! indicates not to do external bc, only internal
 
       do istage = 1, mstage
 
@@ -124,17 +122,16 @@ c
 c        update for oneeach stage so that bc's set properly
 c        for next  stage. will take it off when later
 c
-         rnode(timemult,mptr) = rnode(timemult,mptr)+delt
       end do
 !$OMP END PARALLEL DO
 c
-c     next set of boundary conditions
       call system_clock(clock_startBound,clock_rate)
       call cpu_time(cpu_startBound)
 c redo ghost cells (one level only, no refinement) before SRD
 c
-!$OMP PARALLEL DO PRIVATE(j,locnew, locaux, mptr,nx,ny,mitot,
-!$OMP&                    mjtot,time,levSt),
+      if (ismp .ne. 0) then
+!$OMP PARALLEL DO PRIVATE(j,locnew,locold,locaux, mptr,nx,ny,mitot,
+!$OMP&                    mjtot,time,levSt,locirr,lstgrd),
 !$OMP&            SHARED(level, nvar, naux, alloc, intrat, delt,
 !$OMP&                   listOfGrids,listStart,nghost,
 !$OMP&                   node,rnode,numgrids,listgrids,istage),
@@ -151,23 +148,26 @@ c
          locirr = node(permstore,mptr)
          lstgrd = node(lstptr,mptr)
 c     
+          ! external bcs are for next stage
           call bound(time,nvar,nghost,alloc(locnew),mitot,mjtot,mptr,
-     1               alloc(locaux),naux,dobcstage,alloc(locirr),lstgrd)
+     1               alloc(locaux),naux,istage+1,alloc(locirr),lstgrd)
 
        end do
 !$OMP END PARALLEL DO
+      endif
 
       call system_clock(clock_finishBound,clock_rate)
       call cpu_time(cpu_finishBound)
       timeBound = timeBound + clock_finishBound - clock_startBound
       timeBoundCPU=timeBoundCPU+cpu_finishBound-cpu_startBound
 
-!$OMP PARALLEL DO PRIVATE(j,locnew, locaux, mptr,nx,ny,lstgrd,xlow,ylow,
-!$OMP&                    mitot,mjtot,time,levSt,locirr,
+!$OMP PARALLEL DO PRIVATE(j,locnew,locold,locaux, mptr,nx,ny,lstgrd,
+!$OMP&                    xlow,ylow,mitot,mjtot,time,levSt,locirr,
 !$OMP&                    locnumHoods),
 !$OMP&            SHARED(level, nvar, naux, alloc, intrat, delt,dtnew,
 !$OMP&                   listOfGrids,listStart,nghost,istage,mstage,
-!$OMP&                   dtlevnew,node,rnode,numgrids,listgrids,hx,hy),
+!$OMP&                   ismp,dtlevnew,node,rnode,numgrids,listgrids,
+!$OMP&                   hx,hy),
 !$OMP&            SCHEDULE (dynamic,1)
 !$OMP&            DEFAULT(none)
       do j = 1, numgrids(level)
@@ -187,23 +187,20 @@ c
          if (ismp .eq. 1) then
             call srd_cellMerge(alloc(locnew),nvar,alloc(locirr),
      &                       mitot,mjtot,lstgrd,hx,hy,nghost,xlow,ylow,
-     &                       dobcstage,alloc(locnumHoods),mptr)
+     &                       istage,alloc(locnumHoods),mptr)
          endif
 
          if (istage .eq. mstage) then ! final rk update & set new time step
-           if (mstage .eq. 3) then
-             call do_final_update(alloc(locnew),alloc(locold),mitot,
-     &                          mjtot,nvar,nghost,mstage)
-           endif
+!          all do_final_update(alloc(locnew),alloc(locold),mitot,
+!    &                          mjtot,nvar,nghost,mstage)
            call estdt(alloc(locnew),alloc(locirr),mitot,mjtot,nvar,
      &                hx,hy,dtnew,nghost,alloc(locaux),naux)
 !$OMP CRITICAL (newdt)
           dtlevnew = dmin1(dtlevnew,dtnew)
 !$OMP END CRITICAL (newdt)    
-            ! grid has been updated in time for each stage. subtract off so
-            ! only one update. Done this way to be able to tell that grids
-            ! updated in case of refinement, or
-            rnode(timemult,mptr)  = rnode(timemult,mptr)-(mstage-1)*delt
+            ! update moved out of each stage and only done here once
+            ! intermediate times now use istage
+            rnode(timemult,mptr)  = rnode(timemult,mptr) + delt
          endif
       end do
 !$OMP END PARALLEL DO
@@ -367,11 +364,19 @@ c
       ! this is final update for 3 stage ssp rk scheme
       ! q comes in, it should be  q3, qold is q(t_n)
 
-      do j = nghost+1, mjtot-nghost
-      do i = nghost+1, mitot-nghost
-         q(:,i,j) = (1.d0/3.d0)*qold(:,i,j) + (2.d0/3.d0)*q(:,i,j) 
-      end do
-      end do
+      if (mstage .eq. 2) then
+          do j = nghost+1, mjtot-nghost
+          do i = nghost+1, mitot-nghost
+             q(:,i,j) = 0.5d0*(qold(:,i,j) + q(:,i,j)) 
+          end do
+          end do
+      else if (mstage .eq. 3) then
+          do j = nghost+1, mjtot-nghost
+          do i = nghost+1, mitot-nghost
+             q(:,i,j) = (1.d0/3.d0)*qold(:,i,j) + (2.d0/3.d0)*q(:,i,j) 
+          end do
+          end do
+      endif
 
       return
       end

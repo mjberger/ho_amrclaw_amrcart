@@ -168,10 +168,7 @@ c
 
        dimension dumax(nvar),dumin(nvar),phimin(nvar),graddot(nvar)
        dimension alpha(nvar),recon(nvar)
-       logical  IS_OUTSIDE, IS_GHOST
-
-       IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                    y .lt. ylower .or. y .gt. yupper)
+       logical  IS_GHOST
 
        IS_GHOST(i,j) = (i .le. lwidth .or. i .gt. mitot-lwidth .or.
      .                  j .le. lwidth .or. j .gt. mjtot-lwidth)
@@ -197,9 +194,6 @@ c         write(*,900) i,j,gradmx(1,i,j),gradmy(1,i,j)
               if (IS_GHOST(i+ioff,j+joff)) go to 31
               koff = irr(i+ioff,j+joff)
               if (koff .eq. -1) go to 31
-              call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,
-     &                             xlow,ylow,dx,dy,koff)
-              if (IS_OUTSIDE(xcn,ycn)) go to 31
               dumax = max(dumax,qmerge(:,i+ioff,j+joff)-qmerge(:,i,j))
               dumin = min(dumin,qmerge(:,i+ioff,j+joff)-qmerge(:,i,j))
  31         continue
@@ -213,7 +207,6 @@ c         write(*,900) i,j,gradmx(1,i,j),gradmy(1,i,j)
                 if (koff .eq. -1) go to 32
                 call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,
      &                               xlow,ylow,dx,dy,koff)
-                if (IS_OUTSIDE(xcn,ycn)) go to 32
                 if (koff .ne. lstgrd) then
                    xcn = xcentMerge(koff)
                    ycn = ycentMerge(koff)
@@ -265,7 +258,7 @@ c
        dimension mioff(mitot,mjtot), mjoff(mitot,mjtot)
 
        dimension alpha(nvar),recon(nvar), nborList(25,2)
-       logical  IS_OUTSIDE, INDEX_OUTSIDE
+       logical  INDEX_OUTSIDE
 
 c      sandras variables
        parameter (max_num_nbor=22)
@@ -282,8 +275,6 @@ c      sandras variables
        logical added_neighbor
 
 
-       IS_OUTSIDE(x,y) = (x .lt. xlower .or. x .gt. xupper .or.
-     .                    y .lt. ylower .or. y .gt. yupper)
        INDEX_OUTSIDE(i,j) = (i .lt. 1 .or. i .gt. mitot .or.
      .                       j .lt. 1 .or. j .gt. mjtot)
 
@@ -313,7 +304,6 @@ c      sandras variables
               if (koff .eq. -1) go to 31
               call getCellCentroid(lstgrd,i+ioff,j+joff,xcn,ycn,
      &                             xlow,ylow,dx,dy,koff)
-              if (IS_OUTSIDE(xcn,ycn)) go to 31
               if (koff .ne. lstgrd) then
                  xcn = xcentMerge(koff)
                  ycn = ycentMerge(koff)

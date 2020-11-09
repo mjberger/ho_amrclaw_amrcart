@@ -3,7 +3,7 @@ c ---------------------------------------------------------------------
 c
        subroutine qslopesQuadWithIIR(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,
      &                  irr,lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
-     &                  iir,jjr,istage) 
+     &                  iir,jjr) 
 
       use amr_module
       implicit double precision(a-h,o-z)
@@ -23,8 +23,8 @@ c
       dimension nlist(25,2)
       logical   prflag, quad, enufNbor
       logical all_nbors_exist
-      logical IS_REAL, TRUSTED, OUTSIDE, IS_GHOST
-      data      prflag/.false./
+      logical IS_REAL, IS_GHOST
+      data      prflag/.true./
 
       IS_REAL(i,j) = (i .gt. 0 .and. i .le. mitot .and.
      &                j .gt. 0 .and. j .le. mjtot)
@@ -32,13 +32,6 @@ c
       IS_GHOST(i,j) = (i .le. lwidth .or. i .le. mitot-lwidth .or.
      &                 j .le. lwidth .or. j .le. mjtot-lwidth)
 
-      OUTSIDE(xn,yn)  = (xn .lt. 0.d0 .or. xn .gt. xprob .or.
-     &                   yn .lt. 0.d0 .or. yn .gt. yprob)
-
-      TRUSTED(ixn,iyn) = (ixn .gt. 2*(istage-1) .and. 
-     &                    ixn .lt. mitot-2*(istage-1) .and.
-     &                    iyn .gt. 2*(istage-1) .and. 
-     &                    iyn .lt. mjtot-2*(istage-1)) 
 
 c   ##########
 c   #  compute slopes for cut cells using least squares approach
@@ -109,13 +102,6 @@ c      # this cell needs derivatives
                xn = xlow + (ixn-.5d0)*hx
                yn = ylow + (iyn-.5d0)*hy
             endif
-            ! test for trusted ghost cells, depending on stage
-!           if (IS_GHOST(ixn,iyn)) then
-!              ! internal ghost cells have good vals from others grids
-!              if (OUTSIDE(xn,yn)) then
-!                  if (.not. TRUSTED(ixn,iyn)) cycle
-!              endif
-!           endif
 
             irow = irow + 1
 
