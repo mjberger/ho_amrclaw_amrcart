@@ -3,7 +3,7 @@ c ---------------------------------------------------------------------
 c
        subroutine qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
      &                    lwidth,hx,hy,xlow,ylow,mptr,nvar,
-     &                    iir,jjr) 
+     &                    iir,jjr,istage) 
 
       use amr_module
 
@@ -19,8 +19,8 @@ c
       ! driver routine to call the correct gradient routine
 
       ! first call slope routines for regular cells
-      call reg_slopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,
-     &                irr,lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar)
+      call reg_slopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+     &                lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,istage)
 
 
       ! (use for both cell gradients and merge nhood gradients)
@@ -37,11 +37,12 @@ c
      &                       hx,hy,xlow,ylow,mptr,nvar)
       else if (igradChoice .eq. 3) then
          call qslopesCellAvgQuad(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
-     &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar)
+     &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
+     &                       istage)
       else if (igradChoice .eq. 4) then
          call qslopesQuadWithIIR(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
      &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
-     &                       iir,jjr)
+     &                       iir,jjr,istage)
       else if (igradChoice .eq. 0) then
          write(*,*)"should not be here  should have set ssw = 0"
       else

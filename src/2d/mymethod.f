@@ -88,6 +88,7 @@ c     # initializations
       qxx = 0.d0
       qxy = 0.d0
       qyy = 0.d0
+      dU = 0.d0
 
 c     if (istage .eq. 3) then 
 c        q = .75d0*qold + .25*q  ! q is q2, stage 2, done this way for srd  
@@ -108,7 +109,7 @@ c
        !! q comes in as conserved variables. Computes slopes 
        call qslopes(q,qx,qy,qxx,qxy,qyy,
      &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
-     &                 xlow,ylow,mptr,nvar,iir,jjr)
+     &                 xlow,ylow,mptr,nvar,iir,jjr,istage)
 
        !! now convert to pointwise primitive values
        !! for first test reconstruct in conserved vars`
@@ -119,7 +120,7 @@ c
        !! now compute slopes in primitive vars 
 !       call qslopes(q,qx,qy,qxx,qxy,qyy,
 !     &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
-!     &                 xlow,ylow,mptr,nvar)
+!     &                 xlow,ylow,mptr,nvar,iir,jjristage)
 
 
 c

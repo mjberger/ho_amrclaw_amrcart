@@ -3,7 +3,7 @@ c ---------------------------------------------------------------------
 c
        subroutine qslopesQuadWithIIR(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,
      &                  irr,lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
-     &                  iir,jjr) 
+     &                  iir,jjr,istage) 
 
       use amr_module
       implicit double precision(a-h,o-z)

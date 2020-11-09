@@ -105,6 +105,8 @@ subroutine bc2amr(val,aux,nrow,ncol,meqn,naux, hx, hy, level, time,   &
   real(kind=8) :: pr,u,v,rho,xcen,ycen
   real(kind=8) :: state(meqn)
 
+  include "RKmethod.i"
+
   hxmarg = hx * .01d0
   hymarg = hy * .01d0
 

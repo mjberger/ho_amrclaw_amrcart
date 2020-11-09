@@ -2,7 +2,8 @@ c
 c ---------------------------------------------------------------------
 c
        subroutine qslopesCellAvgQuad(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,
-     &                  irr,lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar) 
+     &                  irr,lstgrd,lwidth,hx,hy,xlow,ylow,mptr,
+     &                  nvar,istage) 
 
       use amr_module
       implicit double precision(a-h,o-z)
@@ -21,7 +22,18 @@ c
       dimension nlist(25,2)
       logical   prflag, quad, enufNbor
       logical all_nbors_exist
-      data      prflag/.false./
+      logical IS_EXTERIOR_AND_BAD, IS_EXTERIOR
+      data      prflag/.true./
+
+      IS_EXTERIOR(x,y) = (x .lt. 0.d0 .or. x .gt. xprob .or. 
+     &                    y .lt. 0.d0 .or. y .gt.  yprob)
+
+      IS_EXTERIOR_AND_BAD(x,y,i,j) = (IS_EXTERIOR(x,y) .and.
+     &                               (i .lt. 2*istage .or. 
+     &                                j .lt. 2*istage .or. 
+     &                                i . gt. mitot-2*istage .or. 
+     &                                j . gt. mjtot-2*istage))
+
 
 c   ##########
 c   #  compute slopes for cut cells using least squares approach
@@ -55,7 +67,6 @@ c      do 110 iy0 = 2, mjtot-1
             go to 110
          endif
 
-         if (all_nbors_exist(ix0,iy0,nco,irr,lstgrd,mitot,mjtot)) cycle
 c     
          if (ar(k)/ar(lstgrd) .lt. gradThreshold) then
             qx(:,ix0,iy0) = 0.d0
@@ -66,7 +77,7 @@ c
             go to 110    ! leave 0 gradient:  more stable for teeny cells w/o slopes
          endif
 c     
-c      # this cell needs derivatives
+c      # need coords for exterior untrusted cells
          if (k .ne. lstgrd) then 
             x0 = xcirr(k)
             y0 = ycirr(k)
@@ -74,7 +85,19 @@ c      # this cell needs derivatives
             x0 = xlow + (ix0-.5d0)*hx
             y0 = ylow + (iy0-.5d0)*hy
          endif
+         if (IS_EXTERIOR_AND_BAD(x0,y0,ix0,iy0)) then
+            ! reset to zero whatever was computed in reg_slopes
+            qx(:,ix0,iy0) = 0.d0
+            qy(:,ix0,iy0) = 0.d0
+            qxx(:,ix0,iy0) = 0.d0
+            qxy(:,ix0,iy0) = 0.d0
+            qyy(:,ix0,iy0) = 0.d0
+            go to 110    
+         endif
+
+         if (all_nbors_exist(ix0,iy0,nco,irr,lstgrd,mitot,mjtot)) cycle
          
+c      # this cell needs derivatives
          nlist(1,1) = ix0
          nlist(1,2) = iy0
          nst        = 1  
@@ -271,6 +294,7 @@ c
       do j = 1, mjtot
       do i = 1, mitot
          k = irr(i,j)
+         if (k .eq. -1) cycle
          write(21,900) i,j,k,(qd(mm,i,j),mm=1,nvar)
  900     format(3i5,4e15.7)
       end do
@@ -287,8 +311,8 @@ c
       all_nbors_exist = .false.  ! initialize
 
       ! check if index out of bounds
-      if (j-nco .lt. 1 .or. j+nco .gt. mjtot) return
-      if (i-nco .lt. 1 .or. i+nco .gt. mitot) return
+      if (j-nco .lt. 1 .or. j+nco .gt. mjtot .or. 
+     &    i-nco .lt. 1 .or. i+nco .gt. mitot) return
 
       ! check for regular stencil
       do joff = j-nco, j+nco

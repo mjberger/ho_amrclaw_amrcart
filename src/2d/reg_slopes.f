@@ -2,7 +2,7 @@ c
 c------------------------------------------------------------
 c
        subroutine reg_slopes(q,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &                   lwidth,hx,hy,xlow,ylow,mptr,nvar)
+     &                   lwidth,hx,hy,xlow,ylow,mptr,nvar,istage)
 
        use amr_module
        implicit double precision(a-h,o-z)
@@ -11,14 +11,15 @@ c
      &           qy(nvar,mitot,mjtot),irr(mitot,mjtot)
        dimension qxx(nvar,mitot,mjtot), qyy(nvar,mitot,mjtot)
        dimension qxy(nvar,mitot,mjtot)
-       logical  regular, quad, nolimiter
+       logical  quad, nolimiter
        include "cuserdt.i"
        common /order2/ ssw, quad, nolimiter
 
-c      regular(i,j) = ((i.gt. lwidth).and.(i.le.mitot-lwidth).and.
-c    &                 (j.gt. lwidth).and.(j.le.mjtot-lwidth))
 
 c
+c  Set all slopes, even for irregular or solid.
+c  Will be fixed in slope routines for irregular/solid cells called afterwards
+
 c      # ssw = slope switch (1. for slopes, 0 for donor cell 0 slopes)
 c      # now set in amrcart
 c
