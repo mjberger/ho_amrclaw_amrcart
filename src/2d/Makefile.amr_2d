@@ -85,7 +85,7 @@ COMMON_SOURCES += \
   $(AMRLIB)/setirr.f \
   $(AMRLIB)/makeSmallerFVRecon.f \
   $(AMRLIB)/makeMergeHood.f \
-  $(AMRLIB)/makeMergeGradHood.f \
+  $(AMRLIB)/makeSmallerMergeGradHood.f \
   $(AMRLIB)/weights.f \
   $(AMRLIB)/setquadrature.f \
   $(AMRLIB)/mkbdry.f \

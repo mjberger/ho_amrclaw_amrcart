@@ -38,8 +38,8 @@ def setrun(claw_pkg='amrclaw'):
     #------------------------------------------------------------------
 
     probdata = rundata.new_UserData(name='probdata',fname='setprob.data')
-    probdata.add_param('mstage ',1, 'RK method order (coeffs set in setprob)')
-    probdata.add_param('ismp',    0,  ' stabilization method')
+    probdata.add_param('mstage ',3, 'RK method order (coeffs set in setprob)')
+    probdata.add_param('ismp',    1,  ' stabilization method')
     ## 0 = none
     ## 1 = SRD
     probdata.add_param('pwconst', True,  ' no slopes in plotting ')

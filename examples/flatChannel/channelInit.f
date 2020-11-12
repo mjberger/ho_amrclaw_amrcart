@@ -23,11 +23,12 @@ c
        y = yin - v*time
 
        !rho = 0.5d0
-       !rho = y - 0.1d0*x + 0.5d0
-       rho = x**2
-       !rho = y**2  + 3.d0*x*y + 0.5*x + 1.d0
-       !rho = y**3 + 2.d0*x*y + 0.5d0
+       !rho = y + 0.5d0
+       !rho = y**2 + 1.d0
+       !rho = y**3 + 0.5d0
+
        !rho = sin(x) + cos(y)
+       rho = y**2  + 3.d0*x*y + 0.5*x + 1.d0
 
        state(1) = rho
        state(2) = rho*u

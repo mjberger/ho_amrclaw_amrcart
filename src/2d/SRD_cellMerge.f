@@ -88,6 +88,7 @@ c       form qMerge vals
             if (OUT_OF_RANGE(i,j)) then 
               !qMerge(:,i,j) = rinfinity ! to make sure we dont use it
               qMerge(:,i,j) = q(:,i,j) ! to make sure we dont use it
+              write(*,*)"this cant happen"
               go to 10 
             endif
             if (k.eq.lstgrd) then ! full cell is its own nhood
