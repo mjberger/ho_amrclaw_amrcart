@@ -53,6 +53,7 @@ c     initialize for error computation across all grids at this level
       bndryDenErrorL1  = 0.d0
       bndryDenExactL1 = 0.d0
       bndryDenErrorMax = 0.d0
+      mptrmax = -1
       imax = -1
       jmax = -1
 
@@ -98,8 +99,9 @@ c    &                    alloc(locirr),lstgrd)
      3                    alloc(locnumHoods),
      4                    ibunit,alloc(locreconx),alloc(locrecony),
      5                    volDenErrorL1,volExactDenL1,exactVol,
-     6                    volDenErrorMax,bndryDenErorL1,bndryDenExactL1,
-     7                    bndryDenErrorMax,imax,jmax)
+     6                    volDenErrorMax,bndryDenErrorL1,
+     7                    bndryDenExactL1,bndryDenErrorMax,
+     8                    imax,jmax,mptrmax)
 c
               mptr = node(levelptr,mptr)
           go to 20
@@ -122,10 +124,11 @@ c  output errors
      .       "Computed volume          ",e15.7,//)
 
       write(outunit,601) bndryDenErrorL1,bndryDenExactL1,
-     &                   bndryDenErrorMax,imax,jmax
+     &                   bndryDenErrorMax,imax,jmax,mptrmax
  601  format("L1 bndry density error ",e15.7,/,
      &       "L1 bndry density exact ",e15.7,/,
-     &     "Max bndry density error ",e14.7,' at ',2i5)
+     &     "Max bndry density error ",e14.7,' at ',2i5,
+     &     " on grid ",i5)
       
       
  99   return

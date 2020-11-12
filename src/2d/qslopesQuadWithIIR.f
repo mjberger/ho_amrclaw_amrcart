@@ -35,7 +35,7 @@ c
 
 c   ##########
 c   #  compute slopes for cut cells using least squares approach
-c   #  code for igradChoice  = 3 - fit quadratic using cell averages 
+c   #  code for igradChoice  = 4 - fit quadratic using cell averages using iir,jjr  
 c   ##########
 
 c
@@ -90,6 +90,7 @@ c      # this cell needs derivatives
          irow = 0
          do 22 joff = -jjr(ix0,iy0), jjr(ix0,iy0)
          do 22 ioff = -iir(ix0,iy0), iir(ix0,iy0)
+            if (ioff .eq. 0 .and. joff .eq. 0) cycle
             iyn = iy0 + joff
             ixn = ix0 + ioff
             if (.not. IS_REAL(ixn,iyn)) cycle

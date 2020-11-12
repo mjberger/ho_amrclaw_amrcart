@@ -29,10 +29,10 @@ c
      &                    y .lt. 0.d0 .or. y .gt.  yprob)
 
       IS_EXTERIOR_AND_BAD(x,y,i,j) = (IS_EXTERIOR(x,y) .and.
-     &                               (i .lt. 2*istage .or. 
-     &                                j .lt. 2*istage .or. 
-     &                                i . gt. mitot-2*istage .or. 
-     &                                j . gt. mjtot-2*istage))
+     &                               (i .lt. 1+2*(istage-1) .or. 
+     &                                j .lt. 1+2*(istage -1).or. 
+     &                                i . gt. mitot-2*(istage-1) .or. 
+     &                                j . gt. mjtot-2*(istage-1)))
 
 
 c   ##########
@@ -53,8 +53,6 @@ c     on flow cells. will add unlimited cut gradients
       quad = .false.
       nco = 1
 
-c      do 110 ix0 = 2, mitot-1
-c      do 110 iy0 = 2, mjtot-1
       do 110 ix0 = 1, mitot
       do 110 iy0 = 1, mjtot
          k = irr(ix0,iy0)

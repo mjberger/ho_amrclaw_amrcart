@@ -5,8 +5,8 @@ c
      1                  lstgrd,dx,dy,xlow,ylow,time,
      2                  numHoods,ibunit,iir,jjr,
      3                  volDenErrorL1,volExactDenL1,exactVol,
-     4                  volDenErrorMax,bndryDenErorL1,bndryDenExactL1,
-     5                  bndryDenErrorMax,imax,jmax)
+     4                  volDenErrorMax,bndryDenErrorL1,bndryDenExactL1,
+     5                  bndryDenErrorMax,imax,jmax,mptrmax)
 c
       use amr_module
       implicit double precision (a-h,o-z)
@@ -79,8 +79,9 @@ c    pwconst set in setrun.py. For debugging sometimes need slopes off
       if (pwconst) go to 9 
 
       if (ssw .ne. 0.d0) then
+        istage = 1
         call qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,iir,jjr)
+     &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,iir,jjr,istage)
       endif
 
  9    continue
@@ -89,9 +90,9 @@ c  count needed for unstructured tec format (so dont have to look up new format)
       nCellsinPlane = 0  
        do 11 i = ist,iend
        do 10 j = jst,jend
-!        if (irr(i,j) .ne. -1) then
+         if (irr(i,j) .ne. -1) then
             nCellsinPlane = nCellsinPlane+1
-!        endif
+         endif
  10   continue
  11   continue
 c
@@ -112,7 +113,7 @@ c
       do 16 j = jst,jend
       do 15 i = ist, iend
          kirr = irr(i,j)
-         !if (kirr .eq. -1) go to 15
+         if (kirr .eq. -1) go to 15
 
 c        # test again for kirr -1 in case want to view in tecplot
          if (kirr .eq. lstgrd .or. kirr .eq. -1) then
@@ -203,6 +204,7 @@ c       only count error for non-ghost cells - even if plotting them
                 bndryDenErrorMax = abs(errprim(1))
                 imax = i
                 jmax = j
+                mptrmax = mptr
              endif
           endif
         endif

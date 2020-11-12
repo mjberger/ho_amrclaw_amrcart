@@ -124,7 +124,7 @@ c       form qMerge vals
         ! compute stable neighborhood (mioff,mjoff) for gradients on merging tiles
         call makeMergeGradHood(irr,lwidth,mitot,mjtot,lstgrd,dx,dy,
      &                      xlow,ylow,mptr,mioff,mjoff)
-        if (igradChoice .eq. 3) then
+        if (igradChoice .eq. 3 .or. igradChoice .eq. 4) then
            call qmslopes(irr,mitot,mjtot,lwidth,dx,dy,xlow,ylow,lstgrd,
      &                numHoods,mioff,mjoff,qMerge,nvar,
      &                gradmx,gradmy,gradmxx,gradmxy,gradmyy)

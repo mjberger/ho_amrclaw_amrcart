@@ -83,7 +83,7 @@ COMMON_SOURCES += \
   $(AMRLIB)/lstput.f \
   $(AMRLIB)/lstget.f \
   $(AMRLIB)/setirr.f \
-  $(AMRLIB)/makeFVRecon.f \
+  $(AMRLIB)/makeSmallerFVRecon.f \
   $(AMRLIB)/makeMergeHood.f \
   $(AMRLIB)/makeMergeGradHood.f \
   $(AMRLIB)/weights.f \

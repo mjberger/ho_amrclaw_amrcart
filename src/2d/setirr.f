@@ -162,10 +162,13 @@ c             save tots in rest of poly
   71      continue
 
        !! set up 3rd order reconstruction stencils and merging nhoods
-c      call makeFVReconHood(irr,mitot,mjtot,nghost,lstgrd,hx,hy,
-c    &                      xlow,ylow,iir,jjr)
-      iir = 1
-      jjr = 1
+       call makeFVReconHood(irr,mitot,mjtot,nghost,lstgrd,hx,hy,
+     &                      xlow,ylow,iir,jjr)
+      if (igradChoice .eq. 3) then
+        ! initialize to something to avoid nan but shouldnt be using them
+        iir = 1
+        jjr = 1
+      endif
 
        !! make merging nhood
        call makeMergeHood(irr,numHoods,mitot,mjtot,nghost,lstgrd,

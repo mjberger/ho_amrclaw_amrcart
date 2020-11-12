@@ -38,8 +38,8 @@ def setrun(claw_pkg='amrclaw'):
     #------------------------------------------------------------------
 
     probdata = rundata.new_UserData(name='probdata',fname='setprob.data')
-    probdata.add_param('mstage ',3, 'RK method order (coeffs set in setprob)')
-    probdata.add_param('ismp',    1,  ' stabilization method')
+    probdata.add_param('mstage ',1, 'RK method order (coeffs set in setprob)')
+    probdata.add_param('ismp',    0,  ' stabilization method')
     ## 0 = none
     ## 1 = SRD
     probdata.add_param('pwconst', True,  ' no slopes in plotting ')
@@ -53,8 +53,9 @@ def setrun(claw_pkg='amrclaw'):
     probdata.add_param('ghost_ccg',  False,  ' use ghost cells in cutcell/tile gradients')
     probdata.add_param('limitTile',  0, ' 1 = BJ, 2 = LP')
     probdata.add_param('lpChoice',   2, ' 1 = restrictive, 2 = relaxed, if LP limiter use')
-    probdata.add_param('igradChoice', 3, ' 0=none, 1=1storder, 2=ptwise quad,3=cellavg quad')
+    probdata.add_param('igradChoice', 3, ' 0=none, 1=1storder, 2=ptwise quad,3=cellavg quad, 4=iirQuad')
     probdata.add_param('areaFrac', 0.5, ' merge until volume = areaFrac*dx*dx')
+    probdata.add_param('ghostOut', False,  ' output ghost cells for plotting ')
 
 
     #------------------------------------------------------------------
@@ -86,16 +87,17 @@ def setrun(claw_pkg='amrclaw'):
     clawdata.upper[1] = 1.000000e+00          # yupper
 
     # Number of grid cells:
-    #clawdata.num_cells[0] = 43      # mx
-    #clawdata.num_cells[1] = 44      # my
+    clawdata.num_cells[0] = 43      # mx
+    clawdata.num_cells[1] = 44      # my
     #clawdata.num_cells[0] = 86      # mx
     #clawdata.num_cells[1] = 88      # my
+    #clawdata.num_cells[0] = 4*172     # mx
+    #clawdata.num_cells[1] = 4*176     # my
     #clawdata.num_cells[0] = 3*129     # mx
     #clawdata.num_cells[1] = 3*132     # my
-    #clawdata.num_cells[0] = 344     # mx
-    #clawdata.num_cells[1] = 352     # my
-    clawdata.num_cells[0] = 516       # mx
-    clawdata.num_cells[1] = 528       # my
+    #clawdata.num_cells[0] = 688     # mx
+    #clawdata.num_cells[1] = 704     # my
+
 
     # ---------------
     # Size of system:
@@ -123,8 +125,9 @@ def setrun(claw_pkg='amrclaw'):
     # restart_file 'fort.chkNNNNN' specified below should be in
     # the OUTDIR indicated in Makefile.
 
-    clawdata.restart = False               # True to restart from prior results
-    clawdata.restart_file = 'fort.chk00006'  # File to use for restart data
+    clawdata.restart = False            # True to restart from prior results
+    #clawdata.restart = True            # True to restart from prior results
+    clawdata.restart_file = 'fort.chk00771'  # File to use for restart data
 
 
     # -------------
@@ -142,6 +145,7 @@ def setrun(claw_pkg='amrclaw'):
         clawdata.num_output_times = 1
         clawdata.tfinal = .50
         clawdata.output_t0 = True  # output at initial (or restart) time?
+        #clawdata.output_t0 = False  # output at initial (or restart) time?
 
     elif clawdata.output_style == 2:
         # Specify a list or numpy array of output times:
@@ -185,7 +189,7 @@ def setrun(claw_pkg='amrclaw'):
     # Initial time step for variable dt.
     # (If dt_variable==0 then dt=dt_initial for all steps)
     #clawdata.dt_initial = 2.000000e-02
-    clawdata.dt_initial = -.123500E-1
+    clawdata.dt_initial = 0.123500E-1
 
     # Max time step to be allowed if variable dt used:
     clawdata.dt_max = 1.000000e+99
@@ -245,8 +249,10 @@ def setrun(claw_pkg='amrclaw'):
     # --------------------
 
     # Number of ghost cells (usually 2)
-    clawdata.num_ghost = 8  # needed for 2 stage RK + delta distrib
+    #clawdata.num_ghost = 8  # needed for 2 stage RK + delta distrib
+    clawdata.num_ghost = 11  # needed for 2 stage RK + delta distrib
     #clawdata.num_ghost = 6  # needed for 2 stage RK + delta distrib
+    #clawdata.num_ghost =  3  # needed for 2 stage RK + delta distrib
 
     # Choice of BCs at xlower and xupper:
     #   0 or 'user'     => user specified (must modify bcNamr.f to use this option)
