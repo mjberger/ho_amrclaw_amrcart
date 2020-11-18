@@ -10,7 +10,7 @@ c
 
       dimension q(nvar,mitot,mjtot) 
       ! use temporary array for qp to avoid converting back
-      dimension qp(nvar,mitot,mjtot)  
+      dimension qp(nvar,mitot,mjtot), qpt(nvar,mitot,mjtot)  
       integer numHoods(mitot,mjtot), irr(mitot,mjtot) 
       integer iir(mitot,mjtot), jjr(mitot,mjtot) 
       dimension qx(nvar,mitot,mjtot),qy(nvar,mitot,mjtot)
@@ -69,7 +69,7 @@ c     pwconst =  .false.
       if (pwconst) go to 9
 
       if (ssw .ne. 0.d0) then
-        call qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
+        call qslopes(qp,qpt,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
      &               nghost,dx,dy,xlowb,ylowb,mptr,nvar,iir,jjr)
       endif
 

@@ -1,8 +1,8 @@
 c
 c ---------------------------------------------------------------------
 c
-       subroutine qslopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,lstgrd,
-     &                    lwidth,hx,hy,xlow,ylow,mptr,nvar,
+       subroutine qslopes(qca,qpt,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+     &                    lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
      &                    iir,jjr,istage) 
 
       use amr_module
@@ -10,17 +10,32 @@ c
       implicit double precision(a-h,o-z)
       include "cuserdt.i"
 
-      dimension qp(nvar,mitot,mjtot),qx(nvar,mitot,mjtot),
+!    qca is for cell average
+!    qpt is pointwise vals
+
+      dimension qca(nvar,mitot,mjtot),qx(nvar,mitot,mjtot),
      &          qy(nvar,mitot,mjtot),irr(mitot,mjtot)
       dimension qxx(nvar,mitot,mjtot), qyy(nvar,mitot,mjtot)
       dimension qxy(nvar,mitot,mjtot)
+      dimension qpt(nvar,mitot,mjtot)
       dimension iir(mitot,mjtot),jjr(mitot,mjtot)
+      logical ag, orig
 
       ! driver routine to call the correct gradient routine
 
       ! first call slope routines for regular cells
-      call reg_slopes(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+      ag = .false.
+      orig = .false.
+      if (ag) then
+         call reg_slopes2(qca,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
      &                lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,istage)
+      else if (orig) then
+         call reg_slopes(qca,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+     &                lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,istage)
+      else ! higher order
+         call reg_slopes3(qca,qpt,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+     &                lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,istage)
+      endif
 
 
       ! (use for both cell gradients and merge nhood gradients)
@@ -33,26 +48,24 @@ c
 
 
       if (igradChoice .eq. 1 .or. igradChoice .eq. 2) then
-         call qslopesPtQuad2(qp,qx,qy,mitot,mjtot,irr,lstgrd,lwidth,
+         call qslopesPtQuad2(qca,qx,qy,mitot,mjtot,irr,lstgrd,lwidth,
      &                       hx,hy,xlow,ylow,mptr,nvar)
       else if (igradChoice .eq. 3) then
-         call qslopesCellAvgQuad(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+         call qslopesCellAvgQuad(qca,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
      &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
      &                       istage)
       else if (igradChoice .eq. 4) then
-         call qslopesQuadWithIIR(qp,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+         call qslopesQuadWithIIR(qca,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
      &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
      &                       iir,jjr,istage)
-      else if (igradChoice .eq. 0) then
-         write(*,*)"should not be here  should have set ssw = 0"
-      else
-         write(*,*)"unrecognized gradient choice",igradChoice
-         write(*,*)"should test in setprob and stop there"
-         stop
+      else if (igradChoice .eq. 5) then
+         call qslopes3(qca,qx,qy,qxx,qxy,qyy,mitot,mjtot,irr,
+     &                       lstgrd,lwidth,hx,hy,xlow,ylow,mptr,nvar,
+     &                       iir,jjr,istage)
       endif
 
       if (limitTile .eq. 1) then ! BJ limiter
-          call limitCellBJ(qp,qx,qy,mitot,mjtot,irr,nvar,hx,hy,
+          call limitCellBJ(qca,qx,qy,mitot,mjtot,irr,nvar,hx,hy,
      &                     lwidth,lstgrd,xlow,ylow)
       endif
 

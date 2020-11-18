@@ -133,6 +133,7 @@ c         point inside the augmented grid. has it been acounted for yet?
 c
 c  for each cell with a boundary segment, calculate the weight
 c  needed for quadratic reconstruction if nec.
+c  added cubic recon for higher order quadratic reconstruction
 c
 c     ###  compute weights all the time, even if not used
 c
@@ -147,6 +148,9 @@ c             save tots in rest of poly
                poly( 8,1,k) = totxx
                poly( 9,1,k) = totxy
                poly(10,1,k) = totyy
+               call computeCubicShifts(dcubicshifts(1,k), 
+     &                           dcubicshifts(2,k), dcubicshifts(3,k),
+     &                           dcubicshifts(4,k),hx,hy,k)
             else if (.not. done) then !use 1st regular cell found for this
               call makep(poly(1,1,lstgrd),i,j,xlow,ylow,hx,hy)
               xc = (poly(1,1,lstgrd) + poly(3,1,lstgrd))/2.d0
@@ -157,14 +161,19 @@ c             save tots in rest of poly
               poly(9,1,lstgrd)  = totxy
               poly(10,1,lstgrd) = totyy
               done = .true.
+              dcubicshifts(1,lstgrd) = 0.d0
+              dcubicshifts(2,lstgrd) = 0.d0
+              dcubicshifts(3,lstgrd) = 0.d0
+              dcubicshifts(4,lstgrd) = 0.d0
             endif
   70      continue
   71      continue
 
        !! set up 3rd order reconstruction stencils and merging nhoods
-       call makeFVReconHood(irr,mitot,mjtot,nghost,lstgrd,hx,hy,
-     &                      xlow,ylow,iir,jjr)
-      if (igradChoice .eq. 3) then
+       if (igradChoice .eq. 4 .or. igradChoice .eq. 5) then
+         call makeFVReconHood(irr,mitot,mjtot,nghost,lstgrd,hx,hy,
+     &                        xlow,ylow,iir,jjr,igradChoice)
+       else if (igradChoice .eq. 3) then
         ! initialize to something to avoid nan but shouldnt be using them
         iir = 1
         jjr = 1

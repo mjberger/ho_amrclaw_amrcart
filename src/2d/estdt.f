@@ -7,10 +7,14 @@ c
        use amr_module, only : rinfinity
        implicit double precision (a-h, o-z)
        dimension val(nvar,mitot,mjtot), irr(mitot,mjtot)
+       logical mine
        include "cuserdt.i"
 
 c
 
+       mine = .false.
+
+       if (mine) then
        dtgrid = rinfinity ! initialize in case all solid cells
        speedmax =  0.d0
        do 20 j = lwidth+1, mjtot-lwidth
@@ -34,6 +38,27 @@ c
           if (speedmax .gt. 0.d0) then
              dtgrid = cflcart * effh / speedmax
           endif
+
+       else ! AG way
+          dtgrid = -rinfinity ! initialize in case all solid cells
+          do j = lwidth+1, mjtot-lwidth
+          do i = lwidth+1, mitot-lwidth
+            if (irr(i,j) .ne. -1) then
+               rho  = val(1,i,j)
+               u   = val(2,i,j)/rho
+               v   = val(3,i,j)/rho
+               etot  = val(4,i,j)
+               velsq  = (u*u+v*v)
+               p    = gamma1*(etot-.5d0*rho*velsq)
+               c    = dsqrt(gamma*p/rho)
+               sp1 = abs(u)+c
+               sp2 = abs(v)+c
+               dtgrid = max(dtgrid, (sp1/dx + sp2/dy))
+            endif   
+          end do 
+          end do 
+          dtgrid = cflcart / dtgrid
+       endif
 c
 c      write(*,*) "setting dt = ",dtgrid
 

@@ -266,38 +266,19 @@ c
 c
  120  if (prflag) then
          write(21,*)' qx '
-         call prDeriv(qx,irr,mitot,mjtot,nvar)
+         call prDeriv(qx,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qy '
-         call prDeriv(qy,irr,mitot,mjtot,nvar)
+         call prDeriv(qy,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qxx'
-         call prDeriv(qxx,irr,mitot,mjtot,nvar)
+         call prDeriv(qxx,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qxy'
-         call prDeriv(qxy,irr,mitot,mjtot,nvar)
+         call prDeriv(qxy,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qyy'
-         call prDeriv(qyy,irr,mitot,mjtot,nvar)
+         call prDeriv(qyy,irr,mitot,mjtot,nvar,lstgrd)
 
       endif
 c
  99   return
-      end
-
-c
-c ----------------------------------------------------------
-c
-      subroutine prDeriv(qd,irr,mitot,mjtot,nvar)
-
-      implicit real*8 (a-h, o-z)
-      dimension qd(nvar,mitot,mjtot), irr(mitot,mjtot)
-
-      do j = 1, mjtot
-      do i = 1, mitot
-         k = irr(i,j)
-         if (k .eq. -1) cycle
-         write(21,900) i,j,k,(qd(mm,i,j),mm=1,nvar)
- 900     format(3i5,4e15.7)
-      end do
-      end do
-      return
       end
 c
 c ----------------------------------------------------------

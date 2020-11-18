@@ -15,7 +15,11 @@ c
       implicit double precision (a-h,o-z)
 
       include "quadrature.i"
+
+      !  q comes in as cell avg 
+      !  qpt is pointwise val
       dimension q(nvar,mitot,mjtot), qold(nvar,mitot,mjtot)
+      dimension qpt(nvar,mitot,mjtot)
       dimension dU(nvar,mitot,mjtot)
       dimension f(nvar,mitot,mjtot),g(nvar,mitot,mjtot)
       dimension qx(nvar,mitot,mjtot),qy(nvar,mitot,mjtot)
@@ -107,7 +111,8 @@ c
 c  store primitive variables in f for now
 c
        !! q comes in as conserved variables. Computes slopes 
-       call qslopes(q,qx,qy,qxx,qxy,qyy,
+       qpt = q ! initialize in case not calling the routine that converts
+       call qslopes(q,qpt,qx,qy,qxx,qxy,qyy,
      &                mitot,mjtot,irr,lstgrd,lwidth,dx,dy,
      &                 xlow,ylow,mptr,nvar,iir,jjr,istage)
 
@@ -158,11 +163,11 @@ c
               dxm = xface - xcent
               dym = yface - ycent
 
-              call evalU(Uout,dxp,dyp,dx,dy,q,qx,qy,qxx,qxy,qyy,
+              call evalU(Uout,dxp,dyp,dx,dy,qpt,qx,qy,qxx,qxy,qyy,
      &                  i,jcol+1,kp,mitot,mjtot,nvar)
               ur(:,i) = Uout(:)
 
-              call evalU(Uout,dxm,dym,dx,dy,q,qx,qy,qxx,qxy,qyy,
+              call evalU(Uout,dxm,dym,dx,dy,qpt,qx,qy,qxx,qxy,qyy,
      &                   i,jcol,k,mitot,mjtot,nvar)
               ul(:,i) = Uout(:)
 c
@@ -211,12 +216,12 @@ c
             dxm = xface-xcent
             dym = yface-ycent
 
-            call evalU(Uout,dxp,dyp,dx,dy,q,qx,qy,qxx,qxy,qyy,irow+1,j,
-     &                 kp,mitot,mjtot,nvar)
+            call evalU(Uout,dxp,dyp,dx,dy,qpt,qx,qy,qxx,qxy,qyy,
+     &                 irow+1,j,kp,mitot,mjtot,nvar)
             ur(:,j) = Uout(:) 
 
-            call evalU(Uout,dxm,dym,dx,dy,q,qx,qy,qxx,qxy,qyy,irow,j,
-     &                 k,mitot,mjtot,nvar)
+            call evalU(Uout,dxm,dym,dx,dy,qpt,qx,qy,qxx,qxy,qyy,
+     &                 irow,j,k,mitot,mjtot,nvar)
             ul(:,j) = Uout(:) 
 
   611   continue

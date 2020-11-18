@@ -83,7 +83,9 @@ c
 
       ! this new piece is for irregular info and for plotting
       write(chkunit) poly,ar,points,wt,xcirr,ycirr,
-     1               ixg,iyg,nxtirr
+     1               volMerge,xcentMerge,ycentMerge,qmshifts,
+     2               dcubicshifts
+      write(chkunit) iidx,jidx,ixg,iyg,nxtirr,svi,svj,ncount
       write(chkunit) xloops,yloops,nloops,lhead,nplot
 c
       close(chkunit)

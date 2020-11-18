@@ -343,7 +343,7 @@ module amr_module
                      points(24,2,irrsize),wt(24,-1:irrsize),          &
                      xcirr(irrsize),ycirr(irrsize),volMerge(irrsize), &
                      xcentMerge(irrsize),ycentMerge(irrsize),         &
-                     qmshifts(3,irrsize)
+                     qmshifts(3,irrsize), dcubicshifts(4,irrsize)
      
      integer ::     ixg(irrsize), iyg(irrsize), nxtirr(irrsize),      &
                     svi(irrsize), svj(irrsize), ncount(irrsize)

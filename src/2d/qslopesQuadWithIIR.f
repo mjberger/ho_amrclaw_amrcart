@@ -24,7 +24,7 @@ c
       logical   prflag, quad, enufNbor
       logical all_nbors_exist
       logical IS_REAL, IS_GHOST
-      data      prflag/.true./
+      data      prflag/.false./
 
       IS_REAL(i,j) = (i .gt. 0 .and. i .le. mitot .and.
      &                j .gt. 0 .and. j .le. mjtot)
@@ -63,7 +63,8 @@ c     on flow cells. will add unlimited cut gradients
          endif
 
          if (k .eq. lstgrd) then
-            nco = 1
+c           nco = 1
+            nco = 2  ! testing new AG formulation of regular cells that uses 2
          else
             nco = 2
          endif
@@ -246,15 +247,15 @@ c
 c
  120  if (prflag) then
          write(21,*)' qx '
-         call prDeriv(qx,irr,mitot,mjtot,nvar)
+         call prDeriv(qx,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qy '
-         call prDeriv(qy,irr,mitot,mjtot,nvar)
+         call prDeriv(qy,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qxx'
-         call prDeriv(qxx,irr,mitot,mjtot,nvar)
+         call prDeriv(qxx,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qxy'
-         call prDeriv(qxy,irr,mitot,mjtot,nvar)
+         call prDeriv(qxy,irr,mitot,mjtot,nvar,lstgrd)
          write(21,*)' qyy'
-         call prDeriv(qyy,irr,mitot,mjtot,nvar)
+         call prDeriv(qyy,irr,mitot,mjtot,nvar,lstgrd)
 
       endif
 c

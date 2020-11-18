@@ -83,10 +83,11 @@ COMMON_SOURCES += \
   $(AMRLIB)/lstput.f \
   $(AMRLIB)/lstget.f \
   $(AMRLIB)/setirr.f \
-  $(AMRLIB)/makeSmallerFVRecon.f \
+  $(AMRLIB)/makeSmallerFVReconHood.f \
   $(AMRLIB)/makeMergeHood.f \
-  $(AMRLIB)/makeSmallerMergeGradHood.f \
+  $(AMRLIB)/makeMergeGradHood.f \
   $(AMRLIB)/weights.f \
+  $(AMRLIB)/computeCubicShifts.f \
   $(AMRLIB)/setquadrature.f \
   $(AMRLIB)/mkbdry.f \
   $(AMRLIB)/centrd.f \
@@ -95,9 +96,13 @@ COMMON_SOURCES += \
   $(AMRLIB)/cholesky.f90 \
   $(AMRLIB)/solve.f \
   $(AMRLIB)/reg_slopes.f \
+  $(AMRLIB)/reg_slopes2.f \
+  $(AMRLIB)/reg_slopes3.f \
   $(AMRLIB)/qslopes.f \
   $(AMRLIB)/qslopesQuadWithIIR.f \
   $(AMRLIB)/qslopesCellAvgQuad.f \
+  $(AMRLIB)/qslopes3.f \
+  $(AMRLIB)/prDeriv.f \
   $(AMRLIB)/qslopesPtQuad2.f \
   $(AMRLIB)/qmslopes.f \
   $(AMRLIB)/mnslopes.f \
